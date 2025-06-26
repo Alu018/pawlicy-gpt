@@ -8,6 +8,12 @@ from pinecone import Pinecone, ServerlessSpec
 import time
 from langchain_pinecone import PineconeVectorStore
 
+# openai import llm
+from langchain_openai import ChatOpenAI
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain import hub
+
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 
 cloud = os.environ.get('PINECONE_CLOUD') or 'aws'
@@ -56,9 +62,34 @@ docsearch = PineconeVectorStore.from_documents(
     namespace=namespace
 )
 
-time.sleep(5)
+# time.sleep(5)
 
 index = pc.Index(index_name)
+
+retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
+retriever = docsearch.as_retriever()
+
+llm = ChatOpenAI(
+    openai_api_key=os.environ.get('OPENAI_API_KEY'),
+    model_name='gpt-3.5-turbo',
+    temperature=0.0
+)
+
+combine_docs_chain = create_stuff_documents_chain(
+    llm, retrieval_qa_chat_prompt
+)
+retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
+
+# example queries
+query1 = "What are the first 3 steps for getting started with the WonderVector5000?"
+query2 = "The Neural Fandango Synchronizer is giving me a headache. What do I do?"
+
+answer1_without_knowledge = llm.invoke(query1)
+
+print("Query 1:", query1)
+print("\nAnswer without knowledge:\n\n", answer1_without_knowledge.content)
+print("\n")
+time.sleep(2)
 
 # See how many vectors have been upserted
 # print("Index after upsert:")
@@ -81,4 +112,4 @@ index = pc.Index(index_name)
 # index.delete(delete_all=True, namespace="wondervector5000")
 
 # show the index stats
-print(index.describe_index_stats())
+# print(index.describe_index_stats())
