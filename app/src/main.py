@@ -14,6 +14,12 @@ from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain import hub
 
+# gemini import llm
+from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain.chains import create_retrieval_chain
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain import hub
+
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 
 cloud = os.environ.get('PINECONE_CLOUD') or 'aws'
@@ -66,21 +72,40 @@ docsearch = PineconeVectorStore.from_documents(
 
 index = pc.Index(index_name)
 
+# retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
+# retriever = docsearch.as_retriever()
+
+# llm = ChatOpenAI(
+#     openai_api_key=os.environ.get('OPENAI_API_KEY'),
+#     model_name='gpt-3.5-turbo',
+#     temperature=0.0
+# )
+
+# combine_docs_chain = create_stuff_documents_chain(
+#     llm, retrieval_qa_chat_prompt
+# )
+# retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
+
+# Load prompt from LangChain hub
 retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
+
+# Create retriever (you still need to define `docsearch`)
 retriever = docsearch.as_retriever()
 
-llm = ChatOpenAI(
-    openai_api_key=os.environ.get('OPENAI_API_KEY'),
-    model_name='gpt-3.5-turbo',
+# Gemini setup
+llm = ChatGoogleGenerativeAI(
+    model="gemini-1.5-pro",  # You can also try "gemini-1.5-pro" if supported
+    google_api_key=os.environ.get("GEMINI_API_KEY"),
     temperature=0.0
 )
 
+# Build chain
 combine_docs_chain = create_stuff_documents_chain(
     llm, retrieval_qa_chat_prompt
 )
 retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
 
-# example queries
+# # example queries
 query1 = "What are the first 3 steps for getting started with the WonderVector5000?"
 query2 = "The Neural Fandango Synchronizer is giving me a headache. What do I do?"
 
@@ -90,6 +115,18 @@ print("Query 1:", query1)
 print("\nAnswer without knowledge:\n\n", answer1_without_knowledge.content)
 print("\n")
 time.sleep(2)
+
+answer1_with_knowledge = retrieval_chain.invoke({"input": query1})
+
+print("Answer with knowledge:\n\n", answer1_with_knowledge['answer'])
+print("\nContext used:\n\n", answer1_with_knowledge['context'])
+print("\n")
+time.sleep(2)
+
+# print("Query 2:", query2)
+# print("\nAnswer without knowledge:\n\n", answer1_without_knowledge.content)
+# print("\n")
+# time.sleep(2)
 
 # See how many vectors have been upserted
 # print("Index after upsert:")
