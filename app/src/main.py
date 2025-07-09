@@ -86,6 +86,24 @@ index = pc.Index(index_name)
 # )
 # retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
 
+from langchain.prompts import PromptTemplate
+
+custom_prompt = PromptTemplate(
+    input_variables=["context", "input"],
+    template="""
+You are an expert assistant. Use the provided context to answer the question. 
+If the context is not helpful or does not contain the answer, answer from your own knowledge.
+
+Context:
+{context}
+
+Question:
+{input}
+
+Answer:
+"""
+)
+
 # Load prompt from LangChain hub
 retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
 
@@ -101,8 +119,10 @@ llm = ChatGoogleGenerativeAI(
 
 # Build chain
 combine_docs_chain = create_stuff_documents_chain(
-    llm, retrieval_qa_chat_prompt
+    llm, custom_prompt
 )
+
+# retriever = docsearch.as_retriever(search_kwargs={"score_threshold": 0.7})
 retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
 
 # # example queries
@@ -124,12 +144,12 @@ query3 = "Tell me about mockingbirds"
 # print("\n")
 # time.sleep(2)
 
-answer2_without_knowledge = llm.invoke(query3)
+# answer2_without_knowledge = llm.invoke(query3)
 
-print("Query 2:", query3)
-print("\nAnswer without knowledge:\n\n", answer2_without_knowledge.content)
-print("\n")
-time.sleep(2)
+# print("Query 2:", query3)
+# print("\nAnswer without knowledge:\n\n", answer2_without_knowledge.content)
+# print("\n")
+# time.sleep(2)
 
 answer2_with_knowledge = retrieval_chain.invoke({"input": query3})
 
