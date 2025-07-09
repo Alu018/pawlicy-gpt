@@ -94,7 +94,7 @@ retriever = docsearch.as_retriever()
 
 # Gemini setup
 llm = ChatGoogleGenerativeAI(
-    model="gemini-1.5-pro",  # You can also try "gemini-1.5-pro" if supported
+    model="gemini-1.5-pro",
     google_api_key=os.environ.get("GEMINI_API_KEY"),
     temperature=0.0
 )
@@ -108,25 +108,35 @@ retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
 # # example queries
 query1 = "What are the first 3 steps for getting started with the WonderVector5000?"
 query2 = "The Neural Fandango Synchronizer is giving me a headache. What do I do?"
+query3 = "Tell me about mockingbirds"
 
-answer1_without_knowledge = llm.invoke(query1)
+# answer1_without_knowledge = llm.invoke(query1)
 
-print("Query 1:", query1)
-print("\nAnswer without knowledge:\n\n", answer1_without_knowledge.content)
-print("\n")
-time.sleep(2)
-
-answer1_with_knowledge = retrieval_chain.invoke({"input": query1})
-
-print("Answer with knowledge:\n\n", answer1_with_knowledge['answer'])
-print("\nContext used:\n\n", answer1_with_knowledge['context'])
-print("\n")
-time.sleep(2)
-
-# print("Query 2:", query2)
+# print("Query 1:", query1)
 # print("\nAnswer without knowledge:\n\n", answer1_without_knowledge.content)
 # print("\n")
 # time.sleep(2)
+
+# answer1_with_knowledge = retrieval_chain.invoke({"input": query1})
+
+# print("Answer with knowledge:\n\n", answer1_with_knowledge['answer'])
+# print("\nContext used:\n\n", answer1_with_knowledge['context'])
+# print("\n")
+# time.sleep(2)
+
+answer2_without_knowledge = llm.invoke(query3)
+
+print("Query 2:", query3)
+print("\nAnswer without knowledge:\n\n", answer2_without_knowledge.content)
+print("\n")
+time.sleep(2)
+
+answer2_with_knowledge = retrieval_chain.invoke({"input": query3})
+
+print("\nAnswer with knowledge:\n\n", answer2_with_knowledge['answer'])
+print("\nContext Used:\n\n", answer2_with_knowledge['context'])
+print("\n")
+time.sleep(2)
 
 # See how many vectors have been upserted
 # print("Index after upsert:")
