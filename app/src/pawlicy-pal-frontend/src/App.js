@@ -21,7 +21,7 @@ function App() {
 
   return (
     <div style={{ maxWidth: 600, margin: "auto", padding: 32 }}>
-      <h2>WonderVector5000 Q&A</h2>
+      <h2>Pawlicy Pal</h2>
       <form onSubmit={handleSubmit}>
         <input
           style={{ width: "100%", padding: 8, fontSize: 16 }}

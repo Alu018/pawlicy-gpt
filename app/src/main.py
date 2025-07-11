@@ -92,7 +92,7 @@ custom_prompt = PromptTemplate(
     input_variables=["context", "input"],
     template="""
 You are an expert assistant. Use the provided context to answer the question. 
-If the context is not helpful or does not contain the answer, answer from your own knowledge.
+If the context is not helpful or does not contain the answer, answer from your own knowledge. Regardless of whether the context is helpful, do NOT mention the context in your answer.
 
 Context:
 {context}
