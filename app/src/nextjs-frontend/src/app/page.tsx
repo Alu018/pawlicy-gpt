@@ -1,24 +1,65 @@
 'use client'
 
 // import Image from "next/image";
-import { Send } from "lucide-react";
+import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine } from "lucide-react";
 // import Footer from "../components/Footer" // Adjust the path if needed
 // import api from "@/api";
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent, JSX } from "react";
 
 export default function Home() {
   const [query, setQuery] = useState("")
 
+  const iconMap: Record<string, JSX.Element> = {
+    "magnifying-glass-chart": <FolderSearch className="w-5 h-5 inline mr-2" />,
+    "pencil-paper": <PencilLine className="w-5 h-5 inline mr-2" />,
+    "document-review": <FileText className="w-5 h-5 inline mr-2" />,
+    "roadmap": <Workflow className="w-5 h-5 inline mr-2" />,
+    "gavel-search": <Gavel className="w-5 h-5 inline mr-2" />,
+    "group-mobilize": <Users className="w-5 h-5 inline mr-2" />,
+    "calendar-clock": <CalendarClock className="w-5 h-5 inline mr-2" />,
+    "bar-chart-forecast": <ChartLine className="w-5 h-5 inline mr-2" />,
+  };
   const promptSuggestions = [
-    { id: 1, text: "Alert when government subsidies are allocated to factory farms" },
-    { id: 2, text: "Monitor corporate donations to lawmakers voting on animal welfare" },
-    { id: 3, text: "Track upcoming votes on wildlife protections in Congress" },
-    { id: 4, text: "Notify whenever there is a new bill affecting factory farming regulations" },
-    { id: 5, text: "Track penalties issued to companies violating animal welfare laws" },
-    { id: 6, text: "Alert when public sentiment shifts on animal testing policies" },
-    { id: 7, text: "Monitor new trade agreements impacting live animal exports" },
-    { id: 8, text: "Notify when fast food chains update their animal welfare commitments" },
-    { id: 9, text: "Track lawsuits filed against companies for animal cruelty" },
+    {
+      id: 1,
+      icon: "magnifying-glass-chart", // icon for research
+      text: "Research every U.S. city that bans wild-animal circuses and why each law passed or failed"
+    },
+    {
+      id: 2,
+      icon: "pencil-paper", // icon for drafting
+      text: "Draft a ready-to-file tethering ordinance for dogs in Austin, TX—with fiscal-impact statement"
+    },
+    {
+      id: 3,
+      icon: "document-review", // icon for reviewing documents
+      text: "Review this Chicago carriage-horse ban draft and flag any potential conflicts with Illinois state law"
+    },
+    {
+      id: 4,
+      icon: "roadmap", // icon for roadmap/flowchart
+      text: "Create a roadmap that includes a complete legislative timeline to pass a plastic-straw ban in Miami Beach"
+    },
+    {
+      id: 5,
+      icon: "gavel-search", // icon for legal precedent
+      text: "Find precedent that helped NYC pass its fur-products disclosure rule"
+    },
+    {
+      id: 6,
+      icon: "group-mobilize", // icon for mobilizing people
+      text: "Mobilize volunteers by creating a task list to lobby Phoenix council members on a rodeo cruelty ban"
+    },
+    {
+      id: 7,
+      icon: "calendar-clock", // icon for tracking deadlines
+      text: "Track all initiative-petition deadlines for the Denver backyard-hen permit proposal"
+    },
+    {
+      id: 8,
+      icon: "bar-chart-forecast", // icon for estimating costs
+      text: "Estimate enforcement costs for a Seattle program licensing outdoor cat enclosures"
+    }
   ];
 
   const [question, setQuestion] = useState<string>("");
@@ -52,7 +93,7 @@ export default function Home() {
   return (
     <div className="flex flex-col items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
       <main className="flex flex-col gap-8 items-center sm:items-start">
-        <div className="w-full max-w-4xl flex justify-center items-center">
+        <div className="w-full flex justify-center items-center">
           {/* <Image
               src="/open-paws-logo.png"
               alt="open paws logo"
@@ -60,12 +101,13 @@ export default function Home() {
               height={38}
               priority
             /> */}
-          <h1 className="text-4xl font-bold p-4">Welcome to your Watchdog, Sam</h1>
+          <h1 className="text-2xl text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
+            How can I help move your policy idea forward?
+          </h1>
         </div>
         <div className="flex justify-center text-xl text-center">Watchdog is your personal assistant for researching, monitoring, and reporting on regulatory changes impacting the treatment of animals</div>
 
         <div className="max-w-xl mx-auto p-8">
-          <h2 className="text-2xl font-bold mb-6 text-center">Pawlicy Pal</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input
               className="w-full px-3 py-2 text-lg border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -107,12 +149,13 @@ export default function Home() {
           )}
         </div>
 
-        <div className="w-full flex justify-center text-lg">Need inspiration? Here are some things you can ask me:</div>
+        <div className="w-full flex justify-center text-lg">Don’t know where to start? Here are some examples of things you can ask me:</div>
 
         {/* PROMPT SUGGESTIONS */}
-        <div className="grid grid-cols-3 gap-4 max-w-4xl mx-auto">
+        <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
           {promptSuggestions.map((p) => (
-            <div key={p.id} className="border-gray-300 border-2 italic p-3 text-center text-sm rounded-lg">
+            <div key={p.id} className="border-gray-300 border-2 p-3 text-center text-sm rounded-lg">
+              {iconMap[p.icon]}
               {p.text}
             </div>
           ))}
