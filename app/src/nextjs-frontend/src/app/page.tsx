@@ -1,10 +1,11 @@
 'use client'
 
 // import Image from "next/image";
-import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine } from "lucide-react";
+import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine, ArrowUp } from "lucide-react";
 // import Footer from "../components/Footer" // Adjust the path if needed
 // import api from "@/api";
 import { useState, ChangeEvent, FormEvent, JSX } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function Home() {
   const [query, setQuery] = useState("")
@@ -101,31 +102,42 @@ export default function Home() {
               height={38}
               priority
             /> */}
-          <h1 className="text-2xl text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
+          <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
             How can I help move your policy idea forward?
           </h1>
         </div>
-        <div className="flex justify-center text-xl text-center">Watchdog is your personal assistant for researching, monitoring, and reporting on regulatory changes impacting the treatment of animals</div>
 
-        <div className="max-w-xl mx-auto p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <input
-              className="w-full px-3 py-2 text-lg border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ask a question..."
-            />
-            <button
-              className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-              type="submit"
-            >
-              Ask
-            </button>
+        {/* INPUT FIELD */}
+        <div className="max-w-xl w-full mx-auto">
+          <form onSubmit={handleSubmit} className="w-full space-y-4">
+            <div className="relative">
+              <input
+                className="w-full min-w-0 px-3 py-4 pr-12 text-lg border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Ask a question..."
+              />
+              <button
+                type="submit"
+                className="absolute bottom-2 right-2 bg-black rounded-full p-2 flex items-center justify-center hover:bg-gray-700 transition cursor-pointer disabled:bg-gray-300 disabled:cursor-default"
+                aria-label="Send"
+                disabled={!question.trim()}
+              >
+                <ArrowUp className="w-5 h-5 text-white" />
+              </button>
+            </div>
           </form>
           {answer && (
             <div className="mt-8">
-              <strong className="block mb-1">Answer:</strong>
-              <div className="mb-4">{answer}</div>
+              {answer && (
+                <div className="mt-8">
+                  {/* <strong className="block mb-1">Answer:</strong> */}
+                  <div className="mb-4 prose prose-pawlicy max-w-none">
+                    <ReactMarkdown>{answer}</ReactMarkdown>
+                  </div>
+                  {/* ...context rendering... */}
+                </div>
+              )}
               <strong className="block mb-1">Context:</strong>
               <div>
                 {Array.isArray(context)
