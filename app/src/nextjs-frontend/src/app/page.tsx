@@ -127,7 +127,7 @@ export default function Home() {
               <strong className="block mb-1">Answer:</strong>
               <div className="mb-4">{answer}</div>
               <strong className="block mb-1">Context:</strong>
-              {/* <div>
+              <div>
                 {Array.isArray(context)
                   ? context.map((item, idx) => (
                     <pre
@@ -144,7 +144,7 @@ export default function Home() {
                       </pre>
                     )
                     : context}
-              </div> */}
+              </div>
             </div>
           )}
         </div>
