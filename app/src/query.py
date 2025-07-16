@@ -18,18 +18,28 @@ from langchain import hub
 
 from langchain.prompts import PromptTemplate
 
+# You are an expert assistant. Use the provided context to answer the question. 
+# If the context is not helpful or does not contain the answer, answer from your own knowledge. Regardless of whether the context is helpful, do NOT mention the context in your answer.
+
 custom_prompt = PromptTemplate(
     input_variables=["context", "input"],
     template="""
-        You are an expert assistant. Use the provided context to answer the question. 
-        If the context is not helpful or does not contain the answer, answer from your own knowledge. Regardless of whether the context is helpful, do NOT mention the context in your answer.
+        You are an expert assistant.
 
-        Context:
+        First, provide a detailed answer to the question based on your general knowledge.
+
+        Then if applicable, supplement your answer with the following relevant facts from these documents:
         {context}
+        
+        However, if the query is clearly not related to or present in the documents, answer solely based on your own knowledge.
+        
+        Regardless, in your response to the user, do not mention that you are using these documents. Instead, seamlessly integrate the information into your answer. If possible, format your response in a way that is easy to read, such as using headers, bullet points or numbered lists.
+
+        If there is any conflict between your knowledge and the documents, prioritize the documents.
 
         Question:
         {input}
-
+        
         Answer:
         """
     )

@@ -2,8 +2,8 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from app.src.main import retrieval_chain  # import retrieval chain from RAG file
-from app.src.main import llm  # import llm from RAG file
+from app.src.query import retrieval_chain  # import retrieval chain from RAG file
+from app.src.query import llm  # import llm from RAG file
 
 app = FastAPI()
 

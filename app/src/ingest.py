@@ -21,8 +21,10 @@ namespace = "horse_carriage"
 
 def ingest_document(file_path, index_name, namespace):
     # 1. Load PDF or markdown
+    print(f"Loading file: {file_path}")
     loader = PyPDFLoader(file_path)
     docs = loader.load()
+    print(f"Loaded {len(docs)} pages from PDF.")
 
     # 2. Split into chunks
     splitter = RecursiveCharacterTextSplitter(
@@ -30,6 +32,7 @@ def ingest_document(file_path, index_name, namespace):
         chunk_overlap=50
     )
     chunks = splitter.split_documents(docs)
+    print(f"Split into {len(chunks)} chunks for embedding.")
 
     # 3. Embeddings
     embeddings = PineconeEmbeddings(
@@ -45,6 +48,9 @@ def ingest_document(file_path, index_name, namespace):
             metric="cosine",
             spec=spec
         )
+        print(f"Created new index: {index_name}")
+    else:
+        print(f"Using existing index: {index_name}")
 
     # 5. Embed chunked documents and upsert to Pinecone
         # upserts new vectors into the namespace based on above parameters
@@ -54,10 +60,12 @@ def ingest_document(file_path, index_name, namespace):
         index_name=index_name,
         embedding=embeddings,
         namespace=namespace
-        )
+    )
+    
+    print(f"Upserted {len(chunks)} chunks into index '{index_name}' under namespace '{namespace}'.")
+    
+    stats = pc.Index(index_name).describe_index_stats()
+    print(f"Index stats after upsert: {stats}")
 
 if __name__ == "__main__":
     ingest_document(pdfTest, index_name, namespace)
-
-# get reference to the index so you can check its status, manually delete vectors, etc.
-# index = pc.Index(index_name)
