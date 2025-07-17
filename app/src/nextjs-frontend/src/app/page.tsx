@@ -9,22 +9,23 @@ import ReactMarkdown from "react-markdown";
 
 export default function Home() {
   const [query, setQuery] = useState("")
+  const [showContext, setShowContext] = useState(false);
 
   const iconMap: Record<string, JSX.Element> = {
-    "magnifying-glass-chart": <FolderSearch className="w-5 h-5 inline mr-2" />,
-    "pencil-paper": <PencilLine className="w-5 h-5 inline mr-2" />,
-    "document-review": <FileText className="w-5 h-5 inline mr-2" />,
-    "roadmap": <Workflow className="w-5 h-5 inline mr-2" />,
-    "gavel-search": <Gavel className="w-5 h-5 inline mr-2" />,
-    "group-mobilize": <Users className="w-5 h-5 inline mr-2" />,
-    "calendar-clock": <CalendarClock className="w-5 h-5 inline mr-2" />,
-    "bar-chart-forecast": <ChartLine className="w-5 h-5 inline mr-2" />,
+    "magnifying-glass-chart": <FolderSearch className="w-8 h-8 inline mr-2" />,
+    "pencil-paper": <PencilLine className="w-8 h-8 inline mr-2" />,
+    "document-review": <FileText className="w-8 h-8 inline mr-2" />,
+    "roadmap": <Workflow className="w-8 h-8 inline mr-2" />,
+    "gavel-search": <Gavel className="w-8 h-8 inline mr-2" />,
+    "group-mobilize": <Users className="w-8 h-8 inline mr-2" />,
+    "calendar-clock": <CalendarClock className="w-8 h-8 inline mr-2" />,
+    "bar-chart-forecast": <ChartLine className="w-8 h-8 inline mr-2" />,
   };
   const promptSuggestions = [
     {
       id: 1,
       icon: "magnifying-glass-chart", // icon for research
-      text: "Research every U.S. city that bans wild-animal circuses and why each law passed or failed"
+      text: "**Research** every U.S. city that bans wild-animal circuses and why each law passed or failed"
     },
     {
       id: 2,
@@ -92,7 +93,7 @@ export default function Home() {
   //   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
+    <div className="flex flex-col items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-8 items-center sm:items-start">
         <div className="w-full flex justify-center items-center">
           {/* <Image
@@ -108,14 +109,14 @@ export default function Home() {
         </div>
 
         {/* INPUT FIELD */}
-        <div className="max-w-xl w-full mx-auto">
+        <div className="max-w-full w-full mx-auto">
           <form onSubmit={handleSubmit} className="w-full space-y-4">
             <div className="relative">
               <input
-                className="w-full min-w-0 px-3 py-4 pr-12 text-lg border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full min-w-0 px-3 py-4 pb-22 pr-12 text-lg border border-[#D7E8CD] shadow-md rounded-xl  focus:outline-none focus:ring-2 focus:ring-blue-400"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Ask a question..."
+                placeholder="Be specific when sharing your policy goals with me so I can assist you to the best of my knowledge and ability."
               />
               <button
                 type="submit"
@@ -127,52 +128,65 @@ export default function Home() {
               </button>
             </div>
           </form>
+
           {answer && (
             <div className="mt-8">
-              {answer && (
-                <div className="mt-8">
-                  {/* <strong className="block mb-1">Answer:</strong> */}
-                  <div className="mb-4 prose prose-pawlicy max-w-none">
-                    <ReactMarkdown>{answer}</ReactMarkdown>
+              <div className="mb-4 prose prose-pawlicy max-w-none">
+                <ReactMarkdown>{answer}</ReactMarkdown>
+              </div>
+
+              <button
+                className="text-sm underline text-blue-600 hover:text-blue-800 mb-2"
+                onClick={() => setShowContext(!showContext)}
+              >
+                {showContext ? "Hide context" : "Show context"}
+              </button>
+
+              {showContext && (
+                <div>
+                  <strong className="block mb-1">Context:</strong>
+                  <div>
+                    {Array.isArray(context)
+                      ? context.map((item, idx) => (
+                        <pre
+                          key={idx}
+                          className="bg-gray-100 p-2 rounded mb-2 text-sm overflow-x-auto"
+                        >
+                          {JSON.stringify(item, null, 2)}
+                        </pre>
+                      ))
+                      : typeof context === "object"
+                        ? (
+                          <pre className="bg-gray-100 p-2 rounded text-sm overflow-x-auto">
+                            {JSON.stringify(context, null, 2)}
+                          </pre>
+                        )
+                        : context}
                   </div>
-                  {/* ...context rendering... */}
                 </div>
               )}
-              <strong className="block mb-1">Context:</strong>
-              <div>
-                {Array.isArray(context)
-                  ? context.map((item, idx) => (
-                    <pre
-                      key={idx}
-                      className="bg-gray-100 p-2 rounded mb-2 text-sm overflow-x-auto"
-                    >
-                      {JSON.stringify(item, null, 2)}
-                    </pre>
-                  ))
-                  : typeof context === "object"
-                    ? (
-                      <pre className="bg-gray-100 p-2 rounded text-sm overflow-x-auto">
-                        {JSON.stringify(context, null, 2)}
-                      </pre>
-                    )
-                    : context}
-              </div>
             </div>
           )}
         </div>
 
-        <div className="w-full flex justify-center text-lg">Don’t know where to start? Here are some examples of things you can ask me:</div>
+        {!answer && (
+          <>
+            {/* INSTRUCTIONS */}
+            <div className="w-full flex justify-center pt-4 text-gray-500 font-semibold text-md">Don’t know where to start? Here are some examples of things you can ask me:</div>
 
-        {/* PROMPT SUGGESTIONS */}
-        <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
-          {promptSuggestions.map((p) => (
-            <div key={p.id} className="border-gray-300 border-2 p-3 text-center text-sm rounded-lg">
-              {iconMap[p.icon]}
-              {p.text}
+            {/* PROMPT SUGGESTIONS */}
+            <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
+              {promptSuggestions.map((p) => (
+                <div key={p.id} className="border-[#D7E8CD] border-2 rounded-4xl p-3 text-gray-500 text-sm">
+                  <div className="flex items-center justify-center gap-2">
+                    {iconMap[p.icon]}
+                    <ReactMarkdown>{p.text}</ReactMarkdown>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-
+          </>
+        )}
       </main>
     </div>
   );
