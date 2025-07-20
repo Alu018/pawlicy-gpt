@@ -8,7 +8,7 @@ from langchain_pinecone import PineconeEmbeddings, PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
 import os
 
-pdfTest = "rag_sources/carriage_horse_heat_2019.pdf"
+pdfTest = "rag_sources/fur_sale_ban_2019.pdf"
 
 model_name = 'multilingual-e5-large'
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
@@ -17,7 +17,7 @@ region = os.environ.get('PINECONE_REGION') or 'us-east-1'
 spec = ServerlessSpec(cloud=cloud, region=region)
 
 index_name = "policy-docs"
-namespace = "horse_carriage"
+namespace = "fur_ban"
 
 def ingest_document(file_path, index_name, namespace):
     # 1. Load PDF or markdown
@@ -33,6 +33,15 @@ def ingest_document(file_path, index_name, namespace):
     )
     chunks = splitter.split_documents(docs)
     print(f"Split into {len(chunks)} chunks for embedding.")
+    
+    metadata_fields = {
+        "topic": "fur_ban",
+        "year": 2019,
+        "jurisdiction": "NYC",
+    }
+    
+    for chunk in chunks:
+        chunk.metadata.update(metadata_fields)
 
     # 3. Embeddings
     embeddings = PineconeEmbeddings(
