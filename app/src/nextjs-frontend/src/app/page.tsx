@@ -93,9 +93,9 @@ export default function Home() {
   //   }
 
   return (
-    <div className="flex flex-col items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-
+    <div className="flex flex-col min-h-screen pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-8 items-center sm:items-start">
+        {/* TITLE */}
         <div className="w-full flex justify-center items-center">
           <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
             How can I help move your policy idea forward?
@@ -103,11 +103,11 @@ export default function Home() {
         </div>
 
         {/* INPUT FIELD */}
-        <div className="max-w-full w-full mx-auto">
+        <div className="w-full max-w-5xl mx-auto">
           <form onSubmit={handleSubmit} className="w-full space-y-4">
-            <div className="relative">
+            <div className="w-full relative">
               <input
-                className="w-full min-w-0 px-3 py-4 pb-22 pr-12 text-lg border border-[#D7E8CD] shadow-md rounded-xl  focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full min-w-0 px-3 py-4 pb-26 pr-12 text-lg border border-[#D7E8CD] shadow-md rounded-xl  focus:outline-none focus:ring-2 focus:ring-blue-400"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="Be specific when sharing your policy goals with me so I can assist you to the best of my knowledge and ability."
