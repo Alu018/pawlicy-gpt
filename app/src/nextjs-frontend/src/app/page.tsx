@@ -8,7 +8,6 @@ import { useState, ChangeEvent, FormEvent, JSX } from "react";
 import ReactMarkdown from "react-markdown";
 
 export default function Home() {
-  const [query, setQuery] = useState("")
   const [showContext, setShowContext] = useState(false);
 
   const iconMap: Record<string, JSX.Element> = {
@@ -68,39 +67,54 @@ export default function Home() {
   const [answer, setAnswer] = useState<string>("");
   const [context, setContext] = useState<any>("");
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
+  //   setAnswer("Loading...");
+  //   const res = await fetch("http://localhost:8000/ask", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({ question }),
+  //   });
+  //   const data = await res.json();
+  //   setAnswer(data.answer);
+  //   setContext(data.context);
+  // };
+
+  const submitQuestion = async (questionText: string) => {
     setAnswer("Loading...");
     const res = await fetch("http://localhost:8000/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question: questionText }),
     });
     const data = await res.json();
     setAnswer(data.answer);
     setContext(data.context);
   };
 
-  // Update the query state
-  const onChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setQuery(event.target.value)
-  }
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await submitQuestion(question);
+  };
 
-  // Submit the query
-  //   const submitQuery = async (event: React.FormEvent<HTMLFormElement>) => {
-  //     event.preventDefault()
-  //     await api.post("query", { text: query })
-  //   }
+  const onPromptClick = async (promptText: string) => {
+    setQuestion(promptText);
+    await submitQuestion(promptText);
+  };
+
 
   return (
     <div className="flex flex-col min-h-screen pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-8 items-center sm:items-start">
         {/* TITLE */}
-        <div className="w-full flex justify-center items-center">
-          <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
-            How can I help move your policy idea forward?
-          </h1>
-        </div>
+
+        {!answer && (
+          <div className="w-full flex justify-center items-center">
+            <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
+              How can I help move your policy idea forward?
+            </h1>
+          </div>
+        )}
 
         {/* INPUT FIELD */}
         <div className="w-full max-w-5xl mx-auto">
@@ -171,7 +185,11 @@ export default function Home() {
             {/* PROMPT SUGGESTIONS */}
             <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
               {promptSuggestions.map((p) => (
-                <div key={p.id} className="border-[#D7E8CD] border-2 rounded-4xl p-3 text-gray-500 text-sm">
+                <div
+                  key={p.id}
+                  className="border-[#D7E8CD] border-2 rounded-4xl p-3 text-gray-500 text-sm cursor-pointer hover:bg-gray-100 transition"
+                  onClick={() => onPromptClick(p.text.replace(/\*\*/g, ""))} // remove markdown ** for input text if needed
+                >
                   <div className="flex items-center justify-center gap-2">
                     {iconMap[p.icon]}
                     <ReactMarkdown>{p.text}</ReactMarkdown>
