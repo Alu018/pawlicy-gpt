@@ -106,8 +106,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen pb-20 gap-16 sm:p-20">
       <main className="flex flex-col gap-8 items-center sm:items-start">
-        {/* TITLE */}
-
+        {/* HEADER */}
         {!answer && (
           <div className="w-full flex justify-center items-center">
             <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
@@ -118,25 +117,59 @@ export default function Home() {
 
         {/* INPUT FIELD */}
         <div className="w-full max-w-5xl mx-auto">
-          <form onSubmit={handleSubmit} className="w-full space-y-4">
-            <div className="w-full relative">
-              <input
-                className="w-full min-w-0 px-3 py-4 pb-26 pr-12 text-lg border border-[#D7E8CD] shadow-md rounded-xl  focus:outline-none focus:ring-2 focus:ring-blue-400"
-                value={question}
-                onChange={(e) => setQuestion(e.target.value)}
-                placeholder="Be specific when sharing your policy goals with me so I can assist you to the best of my knowledge and ability."
-              />
-              <button
-                type="submit"
-                className="absolute bottom-2 right-2 bg-black rounded-full p-2 flex items-center justify-center hover:bg-gray-700 transition cursor-pointer disabled:bg-gray-300 disabled:cursor-default"
-                aria-label="Send"
-                disabled={!question.trim()}
-              >
-                <ArrowUp className="w-5 h-5 text-white" />
-              </button>
-            </div>
-          </form>
+          
+          {/* INPUT FIELD (top, only if no answer) */}
+          {!answer && (
+            <form onSubmit={handleSubmit} className="w-full space-y-4">
+              <div className="w-full relative">
+                <input
+                  className="w-full min-w-0 px-4 py-4 pb-26 pr-12 text-md border border-[#D7E8CD] shadow-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Be specific when sharing your policy goals with me so I can assist you to the best of my knowledge and ability."
+                />
+                <button
+                  type="submit"
+                  className="absolute bottom-2 right-2 bg-black rounded-full p-2 flex items-center justify-center hover:bg-gray-700 transition cursor-pointer disabled:bg-gray-300 disabled:cursor-default"
+                  aria-label="Send"
+                  disabled={!question.trim()}
+                >
+                  <ArrowUp className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            </form>
+          )}
 
+          {/* INPUT FIELD (bottom, only if answer exists) */}
+          {answer && (
+            <div
+              className="fixed bottom-12 bg-white border-[#D7E8CD]"
+              style={{ left: "14rem", width: "calc(100% - 16rem)" }}
+            >
+              <div className="max-w-5xl mx-auto">
+                <form onSubmit={handleSubmit} className="max-w-5xl space-y-4">
+                  <div className="w-full relative">
+                    <input
+                      className="w-full min-w-0 px-4 py-4 pb-26 pr-12 text-md border border-[#D7E8CD] shadow-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      value={question}
+                      onChange={(e) => setQuestion(e.target.value)}
+                      placeholder="Ask me anything"
+                    />
+                    <button
+                      type="submit"
+                      className="absolute bottom-2 right-2 bg-black rounded-full p-2 flex items-center justify-center hover:bg-gray-700 transition cursor-pointer disabled:bg-gray-300 disabled:cursor-default"
+                      aria-label="Send"
+                      disabled={!question.trim()}
+                    >
+                      <ArrowUp className="w-5 h-5 text-white" />
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* ANSWER */}
           {answer && (
             <div className="mt-8">
               <div className="mb-4 prose prose-pawlicy max-w-none">
