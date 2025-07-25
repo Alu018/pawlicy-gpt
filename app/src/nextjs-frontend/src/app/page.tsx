@@ -64,24 +64,14 @@ export default function Home() {
   ];
 
   const [question, setQuestion] = useState<string>("");
+  const [lastQuestion, setLastQuestion] = useState<string>(""); // NEW
   const [answer, setAnswer] = useState<string>("");
   const [context, setContext] = useState<any>("");
 
-  // const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-  //   e.preventDefault();
-  //   setAnswer("Loading...");
-  //   const res = await fetch("http://localhost:8000/ask", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({ question }),
-  //   });
-  //   const data = await res.json();
-  //   setAnswer(data.answer);
-  //   setContext(data.context);
-  // };
-
   const submitQuestion = async (questionText: string) => {
     setAnswer("Loading...");
+    setLastQuestion(questionText); // Store for bubble
+    setQuestion("");  // Clear input after submit
     const res = await fetch("http://localhost:8000/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -117,7 +107,7 @@ export default function Home() {
 
         {/* INPUT FIELD */}
         <div className="w-full max-w-5xl mx-auto">
-          
+
           {/* INPUT FIELD (top, only if no answer) */}
           {!answer && (
             <form onSubmit={handleSubmit} className="w-full space-y-4">
@@ -171,9 +161,19 @@ export default function Home() {
 
           {/* ANSWER */}
           {answer && (
-            <div className="mt-8">
-              <div className="mb-4 prose prose-pawlicy max-w-none">
-                <ReactMarkdown>{answer}</ReactMarkdown>
+            <div>
+              {/* User question bubble */}
+              <div className="mt-8 flex justify-end">
+                <div className="bg-pawlicy-lightgreen text-gray-900 rounded-2xl px-6 py-4 max-w-lg text-right shadow-md">
+                  <ReactMarkdown>{lastQuestion}</ReactMarkdown>
+                </div>
+              </div>
+
+              {/* AI answer (normal markdown, left-aligned) */}
+              <div className="mt-4 flex justify-start">
+                <div className="p-4 prose prose-pawlicy max-w-3xl">
+                  <ReactMarkdown>{answer}</ReactMarkdown>
+                </div>
               </div>
 
               <button
