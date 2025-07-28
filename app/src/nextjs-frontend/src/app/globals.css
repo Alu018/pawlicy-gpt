@@ -21,6 +21,16 @@
   }
 }
 
+/* bird flapping loading animation */
+@keyframes flap {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(20deg); }
+}
+.animate-flap {
+  animation: flap 0.7s infinite;
+  transform-origin: 70% 40%;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
