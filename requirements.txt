@@ -4,3 +4,4 @@ python-dotenv
 pinecone
 langchain_pinecone
 langchain
+langchain-google-genai
