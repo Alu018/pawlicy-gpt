@@ -35,6 +35,9 @@ async def ask_question(request: Request):
         "context": result["context"]
     }
     
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+    
 # @app.post("/ask")
 # async def ask_question(request: Request):
 #     data = await request.json()
@@ -64,6 +67,3 @@ async def ask_question(request: Request):
 #         "answer": result["answer"],
 #         "context": result["context"]
 #     }
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
