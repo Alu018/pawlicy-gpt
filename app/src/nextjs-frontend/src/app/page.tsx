@@ -107,7 +107,7 @@ export default function Home() {
     ]);
     setQuestion(""); // Clear input after submit
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/ask`, {
+    const res = await fetch("https://pawlicy-gpt-production.up.railway.app/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: questionText, session_id: sessionId }),
