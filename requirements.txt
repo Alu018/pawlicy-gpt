@@ -3,3 +3,4 @@ uvicorn
 python-dotenv
 pinecone
 langchain_pinecone
+langchain
