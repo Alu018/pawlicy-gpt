@@ -21,6 +21,9 @@ from langchain.prompts import PromptTemplate
 # You are an expert assistant. Use the provided context to answer the question. 
 # If the context is not helpful or does not contain the answer, answer from your own knowledge. Regardless of whether the context is helpful, do NOT mention the context in your answer.
 
+# Here is the conversation so far:
+#         {history}
+
 custom_prompt = PromptTemplate(
     input_variables=["context", "input"],
     template="""
@@ -84,39 +87,6 @@ combine_docs_chain = create_stuff_documents_chain(
 
 # retriever = docsearch.as_retriever(search_kwargs={"score_threshold": 0.7})
 retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
-
-# # example queries
-query1 = "What are the first 3 steps for getting started with the WonderVector5000?"
-query2 = "The Neural Fandango Synchronizer is giving me a headache. What do I do?"
-query3 = "Tell me about mockingbirds"
-
-# answer1_without_knowledge = llm.invoke(query1)
-
-# print("Query 1:", query1)
-# print("\nAnswer without knowledge:\n\n", answer1_without_knowledge.content)
-# print("\n")
-# time.sleep(2)
-
-# answer1_with_knowledge = retrieval_chain.invoke({"input": query1})
-
-# print("Answer with knowledge:\n\n", answer1_with_knowledge['answer'])
-# print("\nContext used:\n\n", answer1_with_knowledge['context'])
-# print("\n")
-# time.sleep(2)
-
-# answer2_without_knowledge = llm.invoke(query3)
-
-# print("Query 2:", query3)
-# print("\nAnswer without knowledge:\n\n", answer2_without_knowledge.content)
-# print("\n")
-# time.sleep(2)
-
-answer2_with_knowledge = retrieval_chain.invoke({"input": query3})
-
-print("\nAnswer with knowledge:\n\n", answer2_with_knowledge['answer'])
-print("\nContext Used:\n\n", answer2_with_knowledge['context'])
-print("\n")
-time.sleep(2)
 
 # See how many vectors have been upserted
 # print("Index after upsert:")

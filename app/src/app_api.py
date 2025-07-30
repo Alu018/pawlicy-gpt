@@ -17,26 +17,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# def hybrid_qa(query):
-#     result = retrieval_chain.invoke({"input": query})
-#     answer = result.get("answer", "")
-#     context = result.get("context", "")
+# In-memory store for conversation history (use a database for production)
+user_histories = {}
 
-#     # If context is a list of Document objects, check for keyword overlap
-#     if isinstance(context, list) and len(context) > 0:
-#         query_words = set(query.lower().split())
-#         relevant = any(
-#             any(word in doc.page_content.lower() for word in query_words)
-#             for doc in context
-#         )
-#         if not relevant:
-#             answer = llm.invoke(query).content
-#             context = "No context used (LLM only)."
-#     elif not context or (isinstance(context, list) and len(context) == 0):
-#         answer = llm.invoke(query).content
-#         context = "No context used (LLM only)."
-
-#     return {"answer": answer, "context": context}
+def build_history_text(history):
+    return "\n".join(
+        f"{'User' if m['role']=='user' else 'Assistant'}: {m['content']}" for m in history
+    )
 
 @app.post("/ask")
 async def ask_question(request: Request):
@@ -51,9 +38,32 @@ async def ask_question(request: Request):
 # @app.post("/ask")
 # async def ask_question(request: Request):
 #     data = await request.json()
+#     print("Received data:", data)
 #     user_input = data.get("question", "")
-#     result = hybrid_qa(user_input)
-#     return result
+#     session_id = data.get("session_id", "default")  # You can generate or pass a session/user id from frontend
+
+#     # Get or create history for this session
+#     history = user_histories.setdefault(session_id, [])
+#     # Add the new user message
+#     history.append({"role": "user", "content": user_input})
+
+#     # Build history string for the prompt (excluding the current assistant response)
+#     history_text = build_history_text(history)
+
+#     # Call the chain
+#     result = retrieval_chain.invoke({
+#         "history": history_text,
+#         "input": user_input,
+#         "context": ""  # If you use context, pass it here or let the chain handle it
+#     })
+
+#     # Add the assistant's response to the history
+#     history.append({"role": "assistant", "content": result["answer"]})
+
+#     return {
+#         "answer": result["answer"],
+#         "context": result["context"]
+#     }
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

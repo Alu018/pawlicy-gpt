@@ -2,12 +2,21 @@
 
 import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine, ArrowUp } from "lucide-react";
 // import api from "@/api";
-import { useState, ChangeEvent, FormEvent, JSX } from "react";
+import { ChangeEvent, FormEvent, JSX } from "react";
 import ReactMarkdown from "react-markdown";
-import { useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import BirdLoader from "../components/BirdLoader";
 
 export default function Home() {
+  function getSessionId() {
+    let id = localStorage.getItem("session_id");
+    if (!id) {
+      id = Math.random().toString(36).substring(2, 15);
+      localStorage.setItem("session_id", id);
+    }
+    return id;
+  }
+
   const [showContext, setShowContext] = useState<number | null>(null);
 
   const iconMap: Record<string, JSX.Element> = {
@@ -81,7 +90,16 @@ export default function Home() {
     }
   }, [chatHistory]);
 
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  // Set sessionId only on client
+  useEffect(() => {
+    setSessionId(getSessionId());
+  }, []);
+
   const submitQuestion = async (questionText: string) => {
+    if (!sessionId) return; // Don't send request until sessionId is set
+
     // Add pending message
     setChatHistory((prev) => [
       ...prev,
@@ -92,8 +110,13 @@ export default function Home() {
     const res = await fetch("http://localhost:8000/ask", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: questionText }),
+      body: JSON.stringify({ question: questionText, session_id: sessionId }),
     });
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Backend error:", res.status, text);
+      return;
+    }
     const data = await res.json();
 
     // Replace the last (pending) message with the real answer
