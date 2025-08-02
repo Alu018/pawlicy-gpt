@@ -1,6 +1,24 @@
-import { Route, SquarePen, Search } from "lucide-react";
+import { Route, SquarePen, Search, MessageCircle } from "lucide-react";
 
-export default function Sidebar() {
+type Chat = {
+  id: string;
+  title: string;
+  history: { question: string; answer: string; context?: any; pending?: boolean }[];
+};
+
+type SidebarProps = {
+  chats: Chat[];
+  onNewChat: () => void;
+  onSelectChat: (id: string) => void;
+  activeChatId: string | null;
+};
+
+export default function Sidebar({
+  chats,
+  onNewChat,
+  onSelectChat,
+  activeChatId,
+}: SidebarProps) {
   return (
     <aside className="h-full w-62 bg-[#F9FBF1] flex flex-col p-4">
       {/* Search Bar */}
@@ -15,12 +33,12 @@ export default function Sidebar() {
         </div>
       </div>
       <nav className="flex flex-col gap-4">
-        <a
-          href="#"
+        <button
+          onClick={onNewChat}
           className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none"
         >
           <SquarePen className="w-5 h-5" /> New Policy
-        </a>
+        </button>
         <a
           href="#"
           className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none"
@@ -28,6 +46,26 @@ export default function Sidebar() {
           <Route className="w-5 h-5" /> Policy Tracker
         </a>
       </nav>
+      {/* Chats Section */}
+      <div className="mt-8">
+        <div className="text-xs font-bold text-gray-500 mb-2 pl-2">Chats</div>
+        <div className="flex flex-col gap-1">
+          {chats.map((chat: Chat) => (
+            <button
+              key={chat.id}
+              onClick={() => onSelectChat(chat.id)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm transition ${
+                activeChatId === chat.id
+                  ? "bg-pawlicy-lightgreen text-pawlicy-green font-semibold"
+                  : "text-gray-700 hover:bg-pawlicy-lightgreen"
+              }`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              {chat.title || "Untitled Chat"}
+            </button>
+          ))}
+        </div>
+      </div>
     </aside>
   );
 }

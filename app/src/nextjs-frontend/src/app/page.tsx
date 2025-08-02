@@ -6,8 +6,13 @@ import { ChangeEvent, FormEvent, JSX } from "react";
 import ReactMarkdown from "react-markdown";
 import { useState, useRef, useEffect } from "react";
 import BirdLoader from "../components/BirdLoader";
+import { useChat } from "../components/ClientLayout"; // adjust path if needed
+
+type Chat = { id: string; title: string; history: { question: string; answer: string; context?: any; pending?: boolean }[] };
 
 export default function Home() {
+  const { chats, setChats, activeChatId, setActiveChatId } = useChat();
+
   function getSessionId() {
     let id = localStorage.getItem("session_id");
     if (!id) {
@@ -100,6 +105,19 @@ export default function Home() {
   const submitQuestion = async (questionText: string) => {
     if (!sessionId) return; // Don't send request until sessionId is set
 
+    if (!activeChatId) {
+      // Create a new chat
+      const newId = Math.random().toString(36).substring(2, 15);
+      const newChat = {
+        id: newId,
+        title: `Chat ${chats.length + 1}`,
+        history: [],
+      };
+      setChats((prev) => [...prev, newChat]);
+      setActiveChatId(newId);
+      // Optionally, set chatHistory to [] here if needed
+    }
+
     // Add pending message
     setChatHistory((prev) => [
       ...prev,
@@ -107,7 +125,10 @@ export default function Home() {
     ]);
     setQuestion(""); // Clear input after submit
 
-    const res = await fetch("https://pawlicy-gpt-production.up.railway.app/ask", {
+    const localServer = "http://localhost:8000/ask";
+    const prodServer = "https://pawlicy-gpt-production.up.railway.app/ask";
+
+    const res = await fetch(prodServer, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: questionText, session_id: sessionId }),
@@ -149,7 +170,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen pb-20 gap-16 sm:p-20 h-screen">
       <main className="flex flex-col gap-8 items-center sm:items-start overflow-none">
         {/* HEADER */}
-        {!answer && (
+        {chatHistory.length === 0 && (
           <div className="w-full flex justify-center items-center">
             <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
               How can I help move your policy idea forward?
@@ -161,7 +182,7 @@ export default function Home() {
         <div className="w-full max-w-5xl mx-auto flex-1 flex flex-col">
 
           {/* INPUT FIELD (top, only if no answer) */}
-          {!answer && (
+          {chatHistory.length === 0 && (
             <form onSubmit={handleSubmit} className="w-full space-y-4">
               <div className="w-full relative">
                 <input
@@ -183,10 +204,10 @@ export default function Home() {
           )}
 
           {/* INPUT FIELD (bottom, only if answer exists) */}
-          {answer && (
+          {chatHistory.length > 0 && (
             <div
               className="fixed bottom-12 bg-white border-[#D7E8CD]"
-              style={{ left: "14rem", width: "calc(100% - 16rem)" }}
+              style={{ left: "15.5rem", width: "calc(100% - 15.5rem)" }}  // corresponds to Sidebar width w-62
             >
               <div className="max-w-5xl mx-auto">
                 <form onSubmit={handleSubmit} className="max-w-5xl space-y-4">
@@ -212,7 +233,7 @@ export default function Home() {
           )}
 
           {/* ANSWER + CHAT HISTORY */}
-          {answer && chatHistory.length > 0 && (
+          {chatHistory.length > 0 && (
             <div className="flex flex-col gap-6 overflow-y-auto pb-32" style={{ maxHeight: "calc(100vh - 12rem)" }}>
               {chatHistory.map((msg, idx) => (
                 <div key={idx} ref={idx === chatHistory.length - 1 ? lastMsgRef : null}>
@@ -273,7 +294,7 @@ export default function Home() {
           )}
         </div>
 
-        {!answer && (
+        {chatHistory.length === 0 && (
           <>
             {/* INSTRUCTIONS */}
             <div className="w-full flex justify-center pt-4 text-gray-500 font-semibold text-md">Don’t know where to start? Here are some examples of things you can ask me:</div>
