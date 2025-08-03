@@ -35,13 +35,13 @@ export default function Sidebar({
       <nav className="flex flex-col gap-4">
         <button
           onClick={onNewChat}
-          className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none"
+          className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
           <SquarePen className="w-5 h-5" /> New Policy
         </button>
         <a
           href="#"
-          className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none"
+          className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
           <Route className="w-5 h-5" /> Policy Tracker
         </a>
@@ -54,7 +54,7 @@ export default function Sidebar({
             <button
               key={chat.id}
               onClick={() => onSelectChat(chat.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm transition ${
+              className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm transition cursor-pointer ${
                 activeChatId === chat.id
                   ? "bg-pawlicy-lightgreen text-pawlicy-green font-semibold"
                   : "text-gray-700 hover:bg-pawlicy-lightgreen"

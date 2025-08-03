@@ -11,6 +11,8 @@ type ChatContextType = {
   setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
   activeChatId: string | null;
   setActiveChatId: React.Dispatch<React.SetStateAction<string | null>>;
+  chatHistory: { question: string; answer: string; context?: any; pending?: boolean }[];
+  setChatHistory: React.Dispatch<React.SetStateAction<{ question: string; answer: string; context?: any; pending?: boolean }[]>>;
 };
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
@@ -18,9 +20,10 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined);
 function ChatProvider({ children }: { children: React.ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; context?: any; pending?: boolean }[]>([]);
 
   return (
-    <ChatContext.Provider value={{ chats, setChats, activeChatId, setActiveChatId }}>
+    <ChatContext.Provider value={{ chats, setChats, activeChatId, setActiveChatId, chatHistory, setChatHistory }}>
       {children}
     </ChatContext.Provider>
   );
@@ -35,10 +38,26 @@ export function useChat() {
 
 // 4. Main layout content
 function LayoutContent({ children }: { children: React.ReactNode }) {
-  const { chats, activeChatId, setActiveChatId } = useChat();
+  const { chats, activeChatId, setActiveChatId, setChatHistory } = useChat();
 
-  const handleNewChat = () => setActiveChatId(null);
-  const handleSelectChat = (id: string) => setActiveChatId(id);
+  const handleNewChat = () => {
+    setActiveChatId(null);
+    setChatHistory([]); // Clear chat history to go back to home screen
+
+    const mainElement = document.querySelector('main');
+    if (mainElement) {
+      mainElement.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const handleSelectChat = (id: string) => {
+    setActiveChatId(id);
+    // Load the selected chat's history
+    const selectedChat = chats.find(chat => chat.id === id);
+    if (selectedChat) {
+      setChatHistory(selectedChat.history);
+    }
+  };
 
   return (
     <div className="flex h-screen">

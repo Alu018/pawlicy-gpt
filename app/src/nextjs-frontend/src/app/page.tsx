@@ -11,7 +11,20 @@ import { useChat } from "../components/ClientLayout"; // adjust path if needed
 type Chat = { id: string; title: string; history: { question: string; answer: string; context?: any; pending?: boolean }[] };
 
 export default function Home() {
-  const { chats, setChats, activeChatId, setActiveChatId } = useChat();
+  const { chats, setChats, activeChatId, setActiveChatId, chatHistory, setChatHistory } = useChat();
+
+  // Sync chatHistory changes back to the active chat
+  useEffect(() => {
+    if (activeChatId && chatHistory.length > 0) {
+      setChats(prevChats =>
+        prevChats.map(chat =>
+          chat.id === activeChatId
+            ? { ...chat, history: chatHistory }
+            : chat
+        )
+      );
+    }
+  }, [chatHistory, activeChatId, setChats]);
 
   function getSessionId() {
     let id = localStorage.getItem("session_id");
@@ -82,10 +95,6 @@ export default function Home() {
   const [answer, setAnswer] = useState<string>("");
   const [context, setContext] = useState<any>("");
 
-  const [chatHistory, setChatHistory] = useState<
-    { question: string; answer: string; context?: any; pending?: boolean }[]
-  >([]);
-
   const lastMsgRef = useRef<HTMLDivElement | null>(null);
 
   // Scroll to last message when chatHistory changes
@@ -108,14 +117,17 @@ export default function Home() {
     if (!activeChatId) {
       // Create a new chat
       const newId = Math.random().toString(36).substring(2, 15);
+      const chatTitle = questionText.length > 30
+        ? questionText.substring(0, 30) + "..."
+        : questionText;
+
       const newChat = {
         id: newId,
-        title: `Chat ${chats.length + 1}`,
+        title: chatTitle, // Use first question as title
         history: [],
       };
       setChats((prev) => [...prev, newChat]);
       setActiveChatId(newId);
-      // Optionally, set chatHistory to [] here if needed
     }
 
     // Add pending message
@@ -128,7 +140,7 @@ export default function Home() {
     const localServer = "http://localhost:8000/ask";
     const prodServer = "https://pawlicy-gpt-production.up.railway.app/ask";
 
-    const res = await fetch(prodServer, {
+    const res = await fetch(localServer, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: questionText, session_id: sessionId }),
