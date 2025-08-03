@@ -137,10 +137,17 @@ export default function Home() {
     ]);
     setQuestion(""); // Clear input after submit
 
-    const localServer = "http://localhost:8000/ask";
-    const prodServer = "https://pawlicy-gpt-production.up.railway.app/ask";
+    // if the environment variable exists, use it; otherwise, default to hardocded local or production URL
+    const localServer = "http://localhost:8000";
+    const prodServer = "https://pawlicy-gpt-production.up.railway.app";
 
-    const res = await fetch(localServer, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      ? `${process.env.NEXT_PUBLIC_API_URL}/ask`
+      : `${process.env.NODE_ENV === 'production'
+        ? prodServer
+        : localServer}/ask`;
+
+    const res = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: questionText, session_id: sessionId }),
