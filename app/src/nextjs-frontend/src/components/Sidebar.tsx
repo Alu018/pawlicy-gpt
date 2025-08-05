@@ -1,4 +1,5 @@
 import { Route, SquarePen, Search, MessageCircle } from "lucide-react";
+import Link from "next/link";
 
 type Chat = {
   id: string;
@@ -19,10 +20,16 @@ export default function Sidebar({
   onSelectChat,
   activeChatId,
 }: SidebarProps) {
+
+  // Helper function to truncate chat titles
+  const truncateTitle = (title: string, maxLength: number = 25) => {
+    return title.length > maxLength ? title.substring(0, maxLength) + "..." : title;
+  };
+
   return (
     <aside className="h-full w-62 bg-[#F9FBF1] flex flex-col p-4">
       {/* Search Bar */}
-      <div className="mb-4 mt-8">
+      <div className="mb-6 mt-8">
         <div className="relative">
           <Search className="absolute left-4 top-2 w-5 h-5 pointer-events-none" />
           <input
@@ -32,20 +39,21 @@ export default function Sidebar({
           />
         </div>
       </div>
-      <nav className="flex flex-col gap-4">
+      <nav className="flex flex-col gap-1">
         <button
           onClick={onNewChat}
           className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
           <SquarePen className="w-5 h-5" /> New Policy
         </button>
-        <a
-          href="#"
+        <Link
+          href="/policy-tracker"
           className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
           <Route className="w-5 h-5" /> Policy Tracker
-        </a>
+        </Link>
       </nav>
+
       {/* Chats Section */}
       <div className="mt-8">
         <div className="text-xs font-bold text-gray-500 mb-2 pl-2">Chats</div>
@@ -54,14 +62,16 @@ export default function Sidebar({
             <button
               key={chat.id}
               onClick={() => onSelectChat(chat.id)}
-              className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm transition cursor-pointer ${
-                activeChatId === chat.id
+              className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm transition cursor-pointer ${activeChatId === chat.id
                   ? "bg-pawlicy-lightgreen text-pawlicy-green font-semibold"
                   : "text-gray-700 hover:bg-pawlicy-lightgreen"
-              }`}
+                }`}
+              title={chat.title || "Untitled Chat"} // Show full title on hover
             >
-              <MessageCircle className="w-4 h-4" />
-              {chat.title || "Untitled Chat"}
+              <MessageCircle className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">
+                {truncateTitle(chat.title || "Untitled Chat")}
+              </span>
             </button>
           ))}
         </div>
