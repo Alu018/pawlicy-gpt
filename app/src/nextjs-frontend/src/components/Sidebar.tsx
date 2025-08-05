@@ -1,5 +1,6 @@
 import { Route, SquarePen, Search, MessageCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 type Chat = {
   id: string;
@@ -20,10 +21,27 @@ export default function Sidebar({
   onSelectChat,
   activeChatId,
 }: SidebarProps) {
+  const router = useRouter();
 
   // Helper function to truncate chat titles
   const truncateTitle = (title: string, maxLength: number = 25) => {
     return title.length > maxLength ? title.substring(0, maxLength) + "..." : title;
+  };
+
+  const handleNewPolicy = () => {
+    onNewChat();
+    router.push('/'); // Navigate to home page
+  };
+
+  const handlePolicyTracker = () => {
+    router.push('/policy-tracker');
+    // Add a small delay to ensure navigation completes before scrolling
+    setTimeout(() => {
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        mainElement.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   return (
@@ -41,17 +59,18 @@ export default function Sidebar({
       </div>
       <nav className="flex flex-col gap-1">
         <button
-          onClick={onNewChat}
+          onClick={handleNewPolicy}
           className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
           <SquarePen className="w-5 h-5" /> New Policy
         </button>
-        <Link
-          href="/policy-tracker"
+
+        <button
+          onClick={handlePolicyTracker}
           className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
           <Route className="w-5 h-5" /> Policy Tracker
-        </Link>
+        </button>
       </nav>
 
       {/* Chats Section */}
@@ -63,8 +82,8 @@ export default function Sidebar({
               key={chat.id}
               onClick={() => onSelectChat(chat.id)}
               className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm transition cursor-pointer ${activeChatId === chat.id
-                  ? "bg-pawlicy-lightgreen text-pawlicy-green font-semibold"
-                  : "text-gray-700 hover:bg-pawlicy-lightgreen"
+                ? "bg-pawlicy-lightgreen text-pawlicy-green font-semibold"
+                : "text-gray-700 hover:bg-pawlicy-lightgreen"
                 }`}
               title={chat.title || "Untitled Chat"} // Show full title on hover
             >

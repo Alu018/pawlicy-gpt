@@ -1,5 +1,4 @@
-import { Plus, AlertTriangle, Calendar } from "lucide-react";
-import { Button } from "../../components/ui/badge";
+import { AlertTriangle, Calendar } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
 
 export default function PolicyTracker() {

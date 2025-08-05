@@ -247,6 +247,8 @@ export default function Home() {
                     </button>
                   </div>
                 </form>
+
+                <div className="text-sm text-center text-gray-500 font-medium pt-4">Pawlicy Pal can make mistakes. Check important information.</div>
               </div>
             </div>
           )}
