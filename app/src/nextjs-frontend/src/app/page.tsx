@@ -1,12 +1,13 @@
 'use client'
 
-import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine, ArrowUp } from "lucide-react";
+import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine, ArrowUp, Download } from "lucide-react";
 // import api from "@/api";
-import { ChangeEvent, FormEvent, JSX } from "react";
+import { FormEvent, JSX } from "react";
 import ReactMarkdown from "react-markdown";
 import { useState, useRef, useEffect } from "react";
 import BirdLoader from "../components/BirdLoader";
 import { useChat } from "../components/ClientLayout"; // adjust path if needed
+import Image from "next/image";
 
 type Chat = { id: string; title: string; history: { question: string; answer: string; context?: any; pending?: boolean }[] };
 
@@ -272,22 +273,52 @@ export default function Home() {
                       {msg.pending ? (
                         <span>
                           <BirdLoader /> Thinking...
-                          {/* Thinking... */}
                         </span>
                       ) : (
-                        <ReactMarkdown>{msg.answer}</ReactMarkdown>
+                        <div>
+                          <ReactMarkdown>{msg.answer}</ReactMarkdown>
+                          <div className="mt-4 pt-4 border-t text-sm text-gray-800 italic">
+                            Prepared by Pawlicy Pal. Please consult City Counsel before filing to confirm compliance with state pre‑emption rules and charter procedures.
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
-                  {/* Context toggle for each message (optional) */}
+
                   {msg.context && (
-                    <button
-                      className="text-sm underline text-blue-500 hover:text-blue-800 pl-4 mb-2 cursor-pointer"
-                      onClick={() => setShowContext(showContext === idx ? null : idx)}
-                    >
-                      {showContext === idx ? "Hide context" : "Show context"}
-                    </button>
+                    <div className="flex items-center gap-2 pl-4 mb-2 mt-4">
+                      {/* Download icon (left) */}
+                      <button
+                        className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors rounded"
+                        title="Download"
+                      >
+                        <Download className="w-6 h-6" />
+                      </button>
+
+                      {/* Pen icon (middle) */}
+                      <button
+                        className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors p-1 rounded"
+                        title="Edit"
+                      >
+                        <PencilLine className="w-6 h-6" />
+                      </button>
+
+                      {/* Add to policy tracker icon (right) */}
+                      <button
+                        className="hover:text-green-900 cursor-pointer transition-colors rounded"
+                        onClick={() => setShowContext(showContext === idx ? null : idx)}
+                        title={showContext === idx ? "Hide context" : "Show context"}
+                      >
+                        <Image
+                          src="/add-policy-tracker.svg"
+                          alt="Toggle context"
+                          width={24}
+                          height={24}
+                        />
+                      </button>
+                    </div>
                   )}
+
                   {showContext === idx && msg.context && (
                     <div>
                       <strong className="block mb-1">Context:</strong>
