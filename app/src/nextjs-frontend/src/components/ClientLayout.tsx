@@ -38,7 +38,7 @@ export function useChat() {
 
 // 4. Main layout content
 function LayoutContent({ children }: { children: React.ReactNode }) {
-  const { chats, activeChatId, setActiveChatId, setChatHistory } = useChat();
+  const { chats, activeChatId, setActiveChatId, setChatHistory, chatHistory } = useChat();
 
   const handleNewChat = () => {
     setActiveChatId(null);
@@ -59,6 +59,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     }
   };
 
+  // Determine overflow based on chat history
+  const mainOverflow = chatHistory.length > 0 ? 'overflow-hidden' : 'overflow-auto';
+
   return (
     <div className="flex h-screen">
       <Sidebar
@@ -69,7 +72,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className="flex-1 p-8 overflow-auto">
+        <main className={`flex-1 p-8 ${mainOverflow}`}>
           {children}
         </main>
       </div>

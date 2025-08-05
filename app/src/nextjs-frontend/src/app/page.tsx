@@ -187,7 +187,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen pb-20 gap-16 sm:p-20 h-screen">
-      <main className="flex flex-col gap-8 items-center sm:items-start overflow-none">
+      <main className="flex flex-col gap-8 items-center sm:items-start">
         {/* HEADER */}
         {chatHistory.length === 0 && (
           <div className="w-full flex justify-center items-center">
@@ -225,7 +225,7 @@ export default function Home() {
           {/* INPUT FIELD (bottom, only if answer exists) */}
           {chatHistory.length > 0 && (
             <div
-              className="fixed bottom-12 bg-white border-[#D7E8CD]"
+              className="fixed bottom-8 bg-white border-[#D7E8CD]"
               style={{ left: "15.5rem", width: "calc(100% - 15.5rem)" }}  // corresponds to Sidebar width w-62
             >
               <div className="max-w-5xl mx-auto">
@@ -259,9 +259,11 @@ export default function Home() {
               {chatHistory.map((msg, idx) => (
                 <div key={idx} ref={idx === chatHistory.length - 1 ? lastMsgRef : null}>
                   {/* User query bubble */}
-                  <div className="flex justify-end">
-                    <div className="bg-pawlicy-lightgreen text-gray-900 rounded-3xl px-6 py-4 max-w-lg text-right shadow-md">
-                      <ReactMarkdown>{msg.question}</ReactMarkdown>
+                  <div className="flex justify-end my-8">
+                    <div className="bg-pawlicy-lightgreen text-gray-900 rounded-3xl px-6 py-4 max-w-lg shadow-md">
+                      <div className="text-left">
+                        <ReactMarkdown>{msg.question}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                   {/* AI answer bubble */}
@@ -321,7 +323,7 @@ export default function Home() {
             <div className="w-full flex justify-center pt-4 text-gray-500 font-semibold text-md">Don’t know where to start? Here are some examples of things you can ask me:</div>
 
             {/* PROMPT SUGGESTIONS */}
-            <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto mb-12">
               {promptSuggestions.map((p) => (
                 <div
                   key={p.id}
