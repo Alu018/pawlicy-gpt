@@ -1,5 +1,4 @@
 import { Route, SquarePen, Search, MessageCircle } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 type Chat = {

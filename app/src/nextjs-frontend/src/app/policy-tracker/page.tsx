@@ -1,5 +1,6 @@
 import { AlertTriangle, Calendar } from "lucide-react";
 import { Badge } from "../../components/ui/badge";
+import { PolicyTable } from "@/components/PolicyTable";
 
 export default function PolicyTracker() {
   return (
@@ -62,6 +63,11 @@ export default function PolicyTracker() {
               </Badge>
             </div>
           </div>
+        </div>
+
+        {/* POLICY TABLE */}
+        <div className="overflow-hiddenmt-6">
+          <PolicyTable />
         </div>
       </div>
     </div>
