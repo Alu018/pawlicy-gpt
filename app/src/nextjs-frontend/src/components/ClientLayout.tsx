@@ -3,6 +3,7 @@
 import React, { useState, useContext, createContext } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import { useRouter } from "next/navigation";
 
 // Define types and context
 type Chat = { id: string; title: string; history: { question: string; answer: string; context?: any; pending?: boolean }[] };
@@ -39,10 +40,14 @@ export function useChat() {
 // 4. Main layout content
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { chats, activeChatId, setActiveChatId, setChatHistory, chatHistory } = useChat();
+  const router = useRouter();
 
   const handleNewChat = () => {
     setActiveChatId(null);
     setChatHistory([]); // Clear chat history to go back to home screen
+
+    // Navigate to home page
+    router.push('/');
 
     const mainElement = document.querySelector('main');
     if (mainElement) {
@@ -57,6 +62,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     if (selectedChat) {
       setChatHistory(selectedChat.history);
     }
+
+    // Navigate to home page to show the chat
+    router.push('/');
   };
 
   // Determine overflow based on chat history
