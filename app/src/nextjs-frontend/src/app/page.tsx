@@ -1,6 +1,6 @@
 'use client'
 
-import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine, ArrowUp, Download } from "lucide-react";
+import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine, ArrowUp, Download, Copy } from "lucide-react";
 // import api from "@/api";
 import { FormEvent, JSX } from "react";
 import ReactMarkdown from "react-markdown";
@@ -12,7 +12,12 @@ import Image from "next/image";
 type Chat = { id: string; title: string; history: { question: string; answer: string; context?: any; pending?: boolean }[] };
 
 export default function Home() {
-  const { chats, setChats, activeChatId, setActiveChatId, chatHistory, setChatHistory } = useChat();
+  const { chats, setChats, activeChatId, setActiveChatId, chatHistory, setChatHistory, addPolicy } = useChat();
+  const [showContext, setShowContext] = useState<number | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [showPolicySnackbar, setShowPolicySnackbar] = useState(false);
+  const [addedToPolicyTracker, setAddedToPolicyTracker] = useState<number | null>(null);
 
   // Sync chatHistory changes back to the active chat
   useEffect(() => {
@@ -36,7 +41,61 @@ export default function Home() {
     return id;
   }
 
-  const [showContext, setShowContext] = useState<number | null>(null);
+  const handleCopyResponse = async (responseText: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(responseText);
+      setCopiedIndex(index);
+      setShowSnackbar(true);
+
+      setTimeout(() => setCopiedIndex(null), 2000); // reset copied state after 2 seconds
+      setTimeout(() => setShowSnackbar(false), 3000); // hide snackbar after 3 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const extractPolicyInfo = (question: string, answer: string) => {
+    // Extract policy name from question or answer
+    let policyName = question.length > 50 ? question.substring(0, 47) + "..." : question;
+
+    // Try to extract jurisdiction from the text
+    const jurisdictionRegex = /(New York|NYC|Chicago|Los Angeles|LA|Austin|Boston|Seattle|Portland|San Francisco|SF|Miami|Denver|Phoenix|Philadelphia|Detroit|Baltimore|Atlanta|Dallas|Houston|San Antonio)/gi;
+    const jurisdictionMatch = (question + " " + answer).match(jurisdictionRegex);
+    const jurisdiction = jurisdictionMatch ? jurisdictionMatch[0] : "TBD";
+
+    // Determine policy type and set appropriate defaults
+    let stage = "Draft";
+    let requiredDocs = ["Fiscal Note", "Sponsor Memo"];
+
+    if (answer.includes("ordinance") || answer.includes("legislation")) {
+      stage = "Draft";
+    } else if (answer.includes("review") || answer.includes("analysis")) {
+      stage = "In Review";
+    }
+
+    return {
+      name: policyName,
+      jurisdiction: jurisdiction,
+      stage: stage,
+      status: "On Track",
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(), // 30 days from now
+      assignees: ["User"],
+      requiredDocs: requiredDocs,
+      attachments: 0,
+      notes: `Generated from chat on ${new Date().toLocaleDateString()}`
+    };
+  };
+
+  const handleAddToPolicyTracker = (msg: any, index: number) => {
+    const policyInfo = extractPolicyInfo(msg.question, msg.answer);
+    addPolicy(policyInfo);
+
+    setAddedToPolicyTracker(index);
+    setShowPolicySnackbar(true);
+
+    setTimeout(() => setAddedToPolicyTracker(null), 3000);
+    setTimeout(() => setShowPolicySnackbar(false), 3000);
+  };
 
   const iconMap: Record<string, JSX.Element> = {
     "magnifying-glass-chart": <FolderSearch className="w-8 h-8 inline mr-2" />,
@@ -256,13 +315,22 @@ export default function Home() {
                   </div>
 
                   {msg.context && (
-                    <div className="flex items-center gap-2 pl-4 mb-2 mt-4">
+                    <div className="flex items-center pl-4 gap-2 mb-2 mt-4">
                       {/* Download icon (left) */}
                       <button
                         className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors rounded"
                         title="Download"
                       >
                         <Download className="w-6 h-6" />
+                      </button>
+
+                      {/* Copy icon (second) */}
+                      <button
+                        className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors rounded"
+                        title={copiedIndex === idx ? "Copied!" : "Copy response"}
+                        onClick={() => handleCopyResponse(msg.answer, idx)}
+                      >
+                        <Copy className={`w-6 h-6 ${copiedIndex === idx ? 'text-green-600' : ''}`} />
                       </button>
 
                       {/* Pen icon (middle) */}
@@ -276,8 +344,8 @@ export default function Home() {
                       {/* Add to policy tracker icon (right) */}
                       <button
                         className="hover:text-green-900 cursor-pointer transition-colors rounded"
-                        onClick={() => setShowContext(showContext === idx ? null : idx)}
-                        title={showContext === idx ? "Hide context" : "Show context"}
+                        onClick={() => handleAddToPolicyTracker(msg, idx)}
+                        title={showContext === idx ? "Hide context" : "Add to policy tracker"}
                       >
                         <Image
                           src="/add-policy-tracker.svg"
@@ -373,6 +441,32 @@ export default function Home() {
             <div className="text-sm text-center text-gray-500 font-medium pt-4">
               Pawlicy Pal can make mistakes. Check important information.
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Snackbar for copy notification */}
+      {showSnackbar && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out">
+          <div className="flex items-center gap-2">
+            <Copy className="w-4 h-4" />
+            <span className="text-sm font-medium">Copied to clipboard!</span>
+          </div>
+        </div>
+      )}
+
+      {/* Snackbar for policy tracker notification */}
+      {showPolicySnackbar && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out">
+          <div className="flex items-center gap-2">
+            <Image
+              src="/add-policy-tracker.svg"
+              alt="Policy added"
+              width={16}
+              height={16}
+              className="filter invert"
+            />
+            <span className="text-sm font-medium">Added to Policy Tracker!</span>
           </div>
         </div>
       )}

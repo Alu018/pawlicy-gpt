@@ -7,6 +7,20 @@ import { useRouter } from "next/navigation";
 
 // Define types and context
 type Chat = { id: string; title: string; history: { question: string; answer: string; context?: any; pending?: boolean }[] };
+
+type Policy = {
+  id: string;
+  name: string;
+  jurisdiction: string;
+  stage: string;
+  status: string;
+  dueDate: string;
+  assignees: string[];
+  requiredDocs: string[];
+  attachments: number;
+  notes: string;
+};
+
 type ChatContextType = {
   chats: Chat[];
   setChats: React.Dispatch<React.SetStateAction<Chat[]>>;
@@ -14,39 +28,71 @@ type ChatContextType = {
   setActiveChatId: React.Dispatch<React.SetStateAction<string | null>>;
   chatHistory: { question: string; answer: string; context?: any; pending?: boolean }[];
   setChatHistory: React.Dispatch<React.SetStateAction<{ question: string; answer: string; context?: any; pending?: boolean }[]>>;
+  policies: Policy[];
+  setPolicies: React.Dispatch<React.SetStateAction<Policy[]>>;
+  addPolicy: (policy: Omit<Policy, 'id'>) => void;
 };
+
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-// Provider component (still in this file)
+// Provider component
 function ChatProvider({ children }: { children: React.ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; context?: any; pending?: boolean }[]>([]);
+  const [policies, setPolicies] = useState<Policy[]>([
+    // Default policies (existing data)
+    {
+      id: "FG-NYC-25",
+      name: "NYC Foie Gras Procurement Ban",
+      jurisdiction: "New York City",
+      stage: "In Review",
+      status: "At Risk",
+      dueDate: "Aug 20, 2025",
+      assignees: ["Maria", "Alex"],
+      requiredDocs: ["Fiscal Note", "Sponsor Memo"],
+      attachments: 2,
+      notes: "Legal concerns about state preemption need to be addressed."
+    }
+  ]);
+
+  const addPolicy = (newPolicy: Omit<Policy, 'id'>) => {
+    const id = `POL-${Date.now()}`;
+    setPolicies(prev => [...prev, { ...newPolicy, id }]);
+  };
 
   return (
-    <ChatContext.Provider value={{ chats, setChats, activeChatId, setActiveChatId, chatHistory, setChatHistory }}>
+    <ChatContext.Provider value={{ 
+      chats, 
+      setChats, 
+      activeChatId, 
+      setActiveChatId, 
+      chatHistory, 
+      setChatHistory,
+      policies,
+      setPolicies,
+      addPolicy
+    }}>
       {children}
     </ChatContext.Provider>
   );
 }
 
-// 3. Custom hook (still in this file)
+// Custom hook
 export function useChat() {
   const ctx = useContext(ChatContext);
   if (!ctx) throw new Error("useChat must be used within a ChatProvider");
   return ctx;
 }
 
-// 4. Main layout content
+// Main layout content
 function LayoutContent({ children }: { children: React.ReactNode }) {
-  const { chats, activeChatId, setActiveChatId, setChatHistory, chatHistory } = useChat();
+  const { chats, activeChatId, setActiveChatId, setChatHistory, chatHistory, setChats } = useChat();
   const router = useRouter();
 
   const handleNewChat = () => {
     setActiveChatId(null);
-    setChatHistory([]); // Clear chat history to go back to home screen
-
-    // Navigate to home page
+    setChatHistory([]);
     router.push('/');
 
     const mainElement = document.querySelector('main');
@@ -57,17 +103,23 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   const handleSelectChat = (id: string) => {
     setActiveChatId(id);
-    // Load the selected chat's history
     const selectedChat = chats.find(chat => chat.id === id);
     if (selectedChat) {
       setChatHistory(selectedChat.history);
     }
-
-    // Navigate to home page to show the chat
     router.push('/');
   };
 
-  // Determine overflow based on chat history
+  const handleDeleteChat = (id: string) => {
+    setChats(prevChats => prevChats.filter(chat => chat.id !== id));
+    
+    if (activeChatId === id) {
+      setActiveChatId(null);
+      setChatHistory([]);
+      router.push('/');
+    }
+  };
+
   const mainOverflow = chatHistory.length > 0 ? 'overflow-y-auto' : 'overflow-auto';
 
   return (
@@ -76,6 +128,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         chats={chats}
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
+        onDeleteChat={handleDeleteChat}
         activeChatId={activeChatId}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -90,7 +143,6 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   );
 }
 
-// 5. Exported layout
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
     <ChatProvider>

@@ -2,70 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, Filter } from 'lucide-react';
-
-// Sample policy data
-const policyData = [
-  {
-    id: "FG-NYC-25",
-    name: "NYC Foie Gras Procurement Ban",
-    jurisdiction: "New York City",
-    stage: "In Review",
-    status: "At Risk",
-    dueDate: "Aug 20, 2025",
-    assignees: ["Maria", "Alex"],
-    requiredDocs: ["Fiscal Note", "Sponsor Memo"],
-    attachments: 2,
-    notes: "Legal concerns about state preemption need to be addressed."
-  },
-  {
-    id: "FR-CHI-24",
-    name: "Chicago Fur-Sale Disclosure Rule",
-    jurisdiction: "Chicago",
-    stage: "Draft",
-    status: "On Track",
-    dueDate: "Sep 10, 2025",
-    assignees: ["Jordan"],
-    requiredDocs: ["Fiscal Note", "Sponsor Memo"],
-    attachments: 0,
-    notes: "Draft ordinance ready for sponsor review."
-  },
-  {
-    id: "WA-LA-23",
-    name: "LA Wild-Animal Circus Ban",
-    jurisdiction: "Los Angeles",
-    stage: "Filed",
-    status: "On Track",
-    dueDate: "Aug 30, 2025",
-    assignees: ["Priya"],
-    requiredDocs: ["All Complete"],
-    attachments: 3,
-    notes: ""
-  },
-  {
-    id: "DT-ATX-24",
-    name: "Austin Dog-Tethering Reform",
-    jurisdiction: "Austin",
-    stage: "Implementing",
-    status: "On Track",
-    dueDate: "Dec 31, 2025",
-    assignees: ["CityClerk"],
-    requiredDocs: ["All Complete"],
-    attachments: 1,
-    notes: ""
-  },
-  {
-    id: "PB-CAM-25",
-    name: "Cambridge Plant-Based Procurement Pilot",
-    jurisdiction: "Cambridge, MA",
-    stage: "Reviewed",
-    status: "Blocked",
-    dueDate: "Jul 15, 2025",
-    assignees: ["Lee"],
-    requiredDocs: ["Fiscal Note", "Legal OK"],
-    attachments: 1,
-    notes: "Budget office flagged potential cost overruns requiring additional review."
-  }
-];
+import { useChat } from './ClientLayout';
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -98,9 +35,23 @@ function getStageColor(stage: string) {
 }
 
 export function PolicyTable() {
+  const { policies } = useChat();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
-  const [filteredData, setFilteredData] = useState(policyData);
+  const [filteredData, setFilteredData] = useState(policies);
+
+  // Update filtered data when policies change
+  React.useEffect(() => {
+    if (selectedFilter === "All") {
+      setFilteredData(policies);
+    } else if (selectedFilter.startsWith("Status:")) {
+      const status = selectedFilter.replace("Status: ", "");
+      setFilteredData(policies.filter(policy => policy.status === status));
+    } else if (selectedFilter.startsWith("Stage:")) {
+      const stage = selectedFilter.replace("Stage: ", "");
+      setFilteredData(policies.filter(policy => policy.stage === stage));
+    }
+  }, [policies, selectedFilter]);
 
   const filterOptions = [
     "All",
@@ -116,18 +67,9 @@ export function PolicyTable() {
   const handleFilterSelect = (filter: string) => {
     setSelectedFilter(filter);
     setIsFilterOpen(false);
-
-    if (filter === "All") {
-      setFilteredData(policyData);
-    } else if (filter.startsWith("Status:")) {
-      const status = filter.replace("Status: ", "");
-      setFilteredData(policyData.filter(policy => policy.status === status));
-    } else if (filter.startsWith("Stage:")) {
-      const stage = filter.replace("Stage: ", "");
-      setFilteredData(policyData.filter(policy => policy.stage === stage));
-    }
   };
 
+  // Rest of the component remains the same...
   return (
     <div className="space-y-4 mt-6">
       {/* Filter Section */}
@@ -142,7 +84,6 @@ export function PolicyTable() {
             <ChevronDown className={`w-4 h-4 text-gray-600 transition-transform ${isFilterOpen ? 'rotate-180' : ''}`} />
           </button>
 
-          {/* Dropdown */}
           {isFilterOpen && (
             <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
               <div className="py-1">
@@ -201,7 +142,6 @@ export function PolicyTable() {
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredData.map((policy, index) => (
                 <tr key={policy.id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  {/* Policy / ID */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
                       <div className="text-sm font-medium text-gray-900">{policy.name}</div>
@@ -209,31 +149,26 @@ export function PolicyTable() {
                     </div>
                   </td>
                   
-                  {/* Jurisdiction */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{policy.jurisdiction}</div>
                   </td>
                   
-                  {/* Stage */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStageColor(policy.stage)}`}>
                       {policy.stage}
                     </span>
                   </td>
                   
-                  {/* Status */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(policy.status)}`}>
                       {policy.status}
                     </span>
                   </td>
                   
-                  {/* Due Date */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{policy.dueDate}</div>
                   </td>
                   
-                  {/* Assignees */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex space-x-1">
                       {policy.assignees.map((assignee, idx) => (
@@ -247,7 +182,6 @@ export function PolicyTable() {
                     </div>
                   </td>
                   
-                  {/* Required Docs */}
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
                       {policy.requiredDocs.map((doc, idx) => (
@@ -261,14 +195,12 @@ export function PolicyTable() {
                     </div>
                   </td>
                   
-                  {/* Attachments */}
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
                       {policy.attachments > 0 ? policy.attachments : '-'}
                     </div>
                   </td>
                   
-                  {/* Notes */}
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900 max-w-xs truncate" title={policy.notes}>
                       {policy.notes || '-'}
