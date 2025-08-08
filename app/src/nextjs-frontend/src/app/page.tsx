@@ -187,22 +187,21 @@ export default function Home() {
 
 
   return (
-    <div className="flex flex-col min-h-screen pb-20 gap-16 sm:p-20 h-screen">
-      <main className="flex flex-col gap-8 items-center sm:items-start">
-        {/* HEADER */}
+    <div className="h-full flex flex-col">
+      {/* HEADER */}
+      {chatHistory.length === 0 && (
+        <div className="w-full flex justify-center items-center flex-shrink-0">
+          <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center pt-24 pb-8">
+            How can I help move your policy idea forward?
+          </h1>
+        </div>
+      )}
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* INPUT FIELD (top, only if no answer) */}
         {chatHistory.length === 0 && (
-          <div className="w-full flex justify-center items-center">
-            <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
-              How can I help move your policy idea forward?
-            </h1>
-          </div>
-        )}
-
-        {/* INPUT FIELD */}
-        <div className="w-full max-w-5xl mx-auto flex-1 flex flex-col">
-
-          {/* INPUT FIELD (top, only if no answer) */}
-          {chatHistory.length === 0 && (
+          <div className="flex-shrink-0 w-full max-w-5xl mx-auto px-4">
             <form onSubmit={handleSubmit} className="w-full space-y-4">
               <div className="w-full relative">
                 <input
@@ -221,42 +220,13 @@ export default function Home() {
                 </button>
               </div>
             </form>
-          )}
+          </div>
+        )}
 
-          {/* INPUT FIELD (bottom, only if answer exists) */}
-          {chatHistory.length > 0 && (
-            <div
-              className="fixed bottom-8 bg-white border-[#D7E8CD]"
-              style={{ left: "15.5rem", width: "calc(100% - 15.5rem)" }}  // corresponds to Sidebar width w-62
-            >
-              <div className="max-w-5xl mx-auto">
-                <form onSubmit={handleSubmit} className="max-w-5xl space-y-4">
-                  <div className="w-full relative">
-                    <input
-                      className="w-full min-w-0 px-4 py-4 pb-26 pr-12 text-md border border-[#D7E8CD] shadow-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      value={question}
-                      onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="Ask me anything"
-                    />
-                    <button
-                      type="submit"
-                      className="absolute bottom-2 right-2 bg-black rounded-full p-2 flex items-center justify-center hover:bg-gray-700 transition cursor-pointer disabled:bg-gray-300 disabled:cursor-default"
-                      aria-label="Send"
-                      disabled={!question.trim()}
-                    >
-                      <ArrowUp className="w-5 h-5 text-white" />
-                    </button>
-                  </div>
-                </form>
-
-                <div className="text-sm text-center text-gray-500 font-medium pt-4">Pawlicy Pal can make mistakes. Check important information.</div>
-              </div>
-            </div>
-          )}
-
-          {/* ANSWER + CHAT HISTORY */}
-          {chatHistory.length > 0 && (
-            <div className="flex flex-col gap-6 overflow-y-auto pb-32" style={{ maxHeight: "calc(100vh - 12rem)" }}>
+        {/* CHAT HISTORY - This should be the scrollable area */}
+        {chatHistory.length > 0 && (
+          <div className="flex-1 overflow-y-auto px-4 pb-60">
+            <div className="flex flex-col gap-6 max-w-5xl mx-auto">
               {chatHistory.map((msg, idx) => (
                 <div key={idx} ref={idx === chatHistory.length - 1 ? lastMsgRef : null}>
                   {/* User query bubble */}
@@ -345,21 +315,24 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
+        {/* PROMPT SUGGESTIONS (only when no chat history) */}
         {chatHistory.length === 0 && (
-          <>
+          <div className="flex-shrink-0 px-4">
             {/* INSTRUCTIONS */}
-            <div className="w-full flex justify-center pt-4 text-gray-500 font-semibold text-md">Don’t know where to start? Here are some examples of things you can ask me:</div>
+            <div className="w-full flex justify-center pt-12 pb-4 text-gray-500 font-semibold text-md">
+              Don't know where to start? Here are some examples of things you can ask me:
+            </div>
 
             {/* PROMPT SUGGESTIONS */}
-            <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto mb-12">
+            <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto mt-4 mb-32">
               {promptSuggestions.map((p) => (
                 <div
                   key={p.id}
                   className="border-[#D7E8CD] border-2 rounded-4xl p-3 text-gray-500 text-sm cursor-pointer hover:bg-gray-100 transition"
-                  onClick={() => onPromptClick(p.text.replace(/\*\*/g, ""))} // remove markdown ** for input text if needed
+                  onClick={() => onPromptClick(p.text.replace(/\*\*/g, ""))}
                 >
                   <div className="flex items-center justify-center gap-2">
                     {iconMap[p.icon]}
@@ -368,9 +341,41 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
-      </main>
+      </div>
+
+      {/* FIXED INPUT FIELD (bottom, only if answer exists) */}
+      {chatHistory.length > 0 && (
+        <div
+          className="fixed bottom-8 bg-white border-[#D7E8CD] flex-shrink-0"
+          style={{ left: "15.5rem", width: "calc(100% - 15.5rem)" }}
+        >
+          <div className="max-w-5xl mx-auto px-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="w-full relative">
+                <input
+                  className="w-full min-w-0 px-4 py-4 pb-26 pr-12 text-md border border-[#D7E8CD] shadow-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Ask me anything"
+                />
+                <button
+                  type="submit"
+                  className="absolute bottom-2 right-2 bg-black rounded-full p-2 flex items-center justify-center hover:bg-gray-700 transition cursor-pointer disabled:bg-gray-300 disabled:cursor-default"
+                  aria-label="Send"
+                  disabled={!question.trim()}
+                >
+                  <ArrowUp className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            </form>
+            <div className="text-sm text-center text-gray-500 font-medium pt-4">
+              Pawlicy Pal can make mistakes. Check important information.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

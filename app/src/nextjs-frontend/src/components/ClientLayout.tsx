@@ -4,7 +4,7 @@ import React, { useState, useContext, createContext } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 
-// 1. Define types and context
+// Define types and context
 type Chat = { id: string; title: string; history: { question: string; answer: string; context?: any; pending?: boolean }[] };
 type ChatContextType = {
   chats: Chat[];
@@ -16,7 +16,7 @@ type ChatContextType = {
 };
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
-// 2. Provider component (still in this file)
+// Provider component (still in this file)
 function ChatProvider({ children }: { children: React.ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -60,7 +60,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   };
 
   // Determine overflow based on chat history
-  const mainOverflow = chatHistory.length > 0 ? 'overflow-hidden' : 'overflow-auto';
+  const mainOverflow = chatHistory.length > 0 ? 'overflow-y-auto' : 'overflow-auto';
 
   return (
     <div className="flex h-screen">
@@ -72,8 +72,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header />
-        <main className={`flex-1 p-8 ${mainOverflow}`}>
-          {children}
+        <main className={`flex-1 ${mainOverflow}`}>
+          <div className="h-full p-8">
+            {children}
+          </div>
         </main>
       </div>
     </div>
