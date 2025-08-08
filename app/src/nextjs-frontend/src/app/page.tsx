@@ -191,7 +191,7 @@ export default function Home() {
       {/* HEADER */}
       {chatHistory.length === 0 && (
         <div className="w-full flex justify-center items-center flex-shrink-0">
-          <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center pt-24 pb-8">
+          <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center pt-22 pb-8">
             How can I help move your policy idea forward?
           </h1>
         </div>
