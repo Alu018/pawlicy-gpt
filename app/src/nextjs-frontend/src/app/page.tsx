@@ -1,17 +1,36 @@
 'use client'
 
-import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine, ArrowUp } from "lucide-react";
+import { FolderSearch, PencilLine, FileText, Workflow, Gavel, Users, CalendarClock, ChartLine, ArrowUp, Download, Copy } from "lucide-react";
 // import api from "@/api";
-import { ChangeEvent, FormEvent, JSX } from "react";
+import { FormEvent, JSX } from "react";
 import ReactMarkdown from "react-markdown";
 import { useState, useRef, useEffect } from "react";
 import BirdLoader from "../components/BirdLoader";
 import { useChat } from "../components/ClientLayout"; // adjust path if needed
+import Image from "next/image";
 
 type Chat = { id: string; title: string; history: { question: string; answer: string; context?: any; pending?: boolean }[] };
 
 export default function Home() {
-  const { chats, setChats, activeChatId, setActiveChatId } = useChat();
+  const { chats, setChats, activeChatId, setActiveChatId, chatHistory, setChatHistory, addPolicy } = useChat();
+  const [showContext, setShowContext] = useState<number | null>(null);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [showSnackbar, setShowSnackbar] = useState(false);
+  const [showPolicySnackbar, setShowPolicySnackbar] = useState(false);
+  const [addedToPolicyTracker, setAddedToPolicyTracker] = useState<number | null>(null);
+
+  // Sync chatHistory changes back to the active chat
+  useEffect(() => {
+    if (activeChatId && chatHistory.length > 0) {
+      setChats(prevChats =>
+        prevChats.map(chat =>
+          chat.id === activeChatId
+            ? { ...chat, history: chatHistory }
+            : chat
+        )
+      );
+    }
+  }, [chatHistory, activeChatId, setChats]);
 
   function getSessionId() {
     let id = localStorage.getItem("session_id");
@@ -22,7 +41,61 @@ export default function Home() {
     return id;
   }
 
-  const [showContext, setShowContext] = useState<number | null>(null);
+  const handleCopyResponse = async (responseText: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(responseText);
+      setCopiedIndex(index);
+      setShowSnackbar(true);
+
+      setTimeout(() => setCopiedIndex(null), 2000); // reset copied state after 2 seconds
+      setTimeout(() => setShowSnackbar(false), 3000); // hide snackbar after 3 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+
+  const extractPolicyInfo = (question: string, answer: string) => {
+    // Extract policy name from question or answer
+    let policyName = question.length > 50 ? question.substring(0, 47) + "..." : question;
+
+    // Try to extract jurisdiction from the text
+    const jurisdictionRegex = /(New York|NYC|Chicago|Los Angeles|LA|Austin|Boston|Seattle|Portland|San Francisco|SF|Miami|Denver|Phoenix|Philadelphia|Detroit|Baltimore|Atlanta|Dallas|Houston|San Antonio)/gi;
+    const jurisdictionMatch = (question + " " + answer).match(jurisdictionRegex);
+    const jurisdiction = jurisdictionMatch ? jurisdictionMatch[0] : "TBD";
+
+    // Determine policy type and set appropriate defaults
+    let stage = "Draft";
+    let requiredDocs = ["Fiscal Note", "Sponsor Memo"];
+
+    if (answer.includes("ordinance") || answer.includes("legislation")) {
+      stage = "Draft";
+    } else if (answer.includes("review") || answer.includes("analysis")) {
+      stage = "In Review";
+    }
+
+    return {
+      name: policyName,
+      jurisdiction: jurisdiction,
+      stage: stage,
+      status: "On Track",
+      dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(), // 30 days from now
+      assignees: ["User"],
+      requiredDocs: requiredDocs,
+      attachments: 0,
+      notes: `Generated from chat on ${new Date().toLocaleDateString()}`
+    };
+  };
+
+  const handleAddToPolicyTracker = (msg: any, index: number) => {
+    const policyInfo = extractPolicyInfo(msg.question, msg.answer);
+    addPolicy(policyInfo);
+
+    setAddedToPolicyTracker(index);
+    setShowPolicySnackbar(true);
+
+    setTimeout(() => setAddedToPolicyTracker(null), 3000);
+    setTimeout(() => setShowPolicySnackbar(false), 3000);
+  };
 
   const iconMap: Record<string, JSX.Element> = {
     "magnifying-glass-chart": <FolderSearch className="w-8 h-8 inline mr-2" />,
@@ -82,10 +155,6 @@ export default function Home() {
   const [answer, setAnswer] = useState<string>("");
   const [context, setContext] = useState<any>("");
 
-  const [chatHistory, setChatHistory] = useState<
-    { question: string; answer: string; context?: any; pending?: boolean }[]
-  >([]);
-
   const lastMsgRef = useRef<HTMLDivElement | null>(null);
 
   // Scroll to last message when chatHistory changes
@@ -108,14 +177,17 @@ export default function Home() {
     if (!activeChatId) {
       // Create a new chat
       const newId = Math.random().toString(36).substring(2, 15);
+      const chatTitle = questionText.length > 30
+        ? questionText.substring(0, 30) + "..."
+        : questionText;
+
       const newChat = {
         id: newId,
-        title: `Chat ${chats.length + 1}`,
+        title: chatTitle, // Use first question as title
         history: [],
       };
       setChats((prev) => [...prev, newChat]);
       setActiveChatId(newId);
-      // Optionally, set chatHistory to [] here if needed
     }
 
     // Add pending message
@@ -125,10 +197,17 @@ export default function Home() {
     ]);
     setQuestion(""); // Clear input after submit
 
-    const localServer = "http://localhost:8000/ask";
-    const prodServer = "https://pawlicy-gpt-production.up.railway.app/ask";
+    // if the environment variable exists, use it; otherwise, default to hardocded local or production URL
+    const localServer = "http://localhost:8000";
+    const prodServer = "https://pawlicy-gpt-production.up.railway.app";
 
-    const res = await fetch(prodServer, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL
+      ? `${process.env.NEXT_PUBLIC_API_URL}/ask`
+      : `${process.env.NODE_ENV === 'production'
+        ? prodServer
+        : localServer}/ask`;
+
+    const res = await fetch(apiUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: questionText, session_id: sessionId }),
@@ -167,22 +246,21 @@ export default function Home() {
 
 
   return (
-    <div className="flex flex-col min-h-screen pb-20 gap-16 sm:p-20 h-screen">
-      <main className="flex flex-col gap-8 items-center sm:items-start overflow-none">
-        {/* HEADER */}
+    <div className="h-full flex flex-col">
+      {/* HEADER */}
+      {chatHistory.length === 0 && (
+        <div className="w-full flex justify-center items-center flex-shrink-0">
+          <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center pt-22 pb-8">
+            How can I help move your policy idea forward?
+          </h1>
+        </div>
+      )}
+
+      {/* MAIN CONTENT AREA */}
+      <div className="flex-1 flex flex-col min-h-0">
+        {/* INPUT FIELD (top, only if no answer) */}
         {chatHistory.length === 0 && (
-          <div className="w-full flex justify-center items-center">
-            <h1 className="text-[40px] text-pawlicy-green p-4 flex justify-center items-center w-full text-center">
-              How can I help move your policy idea forward?
-            </h1>
-          </div>
-        )}
-
-        {/* INPUT FIELD */}
-        <div className="w-full max-w-5xl mx-auto flex-1 flex flex-col">
-
-          {/* INPUT FIELD (top, only if no answer) */}
-          {chatHistory.length === 0 && (
+          <div className="flex-shrink-0 w-full max-w-5xl mx-auto px-4">
             <form onSubmit={handleSubmit} className="w-full space-y-4">
               <div className="w-full relative">
                 <input
@@ -201,46 +279,21 @@ export default function Home() {
                 </button>
               </div>
             </form>
-          )}
+          </div>
+        )}
 
-          {/* INPUT FIELD (bottom, only if answer exists) */}
-          {chatHistory.length > 0 && (
-            <div
-              className="fixed bottom-12 bg-white border-[#D7E8CD]"
-              style={{ left: "15.5rem", width: "calc(100% - 15.5rem)" }}  // corresponds to Sidebar width w-62
-            >
-              <div className="max-w-5xl mx-auto">
-                <form onSubmit={handleSubmit} className="max-w-5xl space-y-4">
-                  <div className="w-full relative">
-                    <input
-                      className="w-full min-w-0 px-4 py-4 pb-26 pr-12 text-md border border-[#D7E8CD] shadow-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      value={question}
-                      onChange={(e) => setQuestion(e.target.value)}
-                      placeholder="Ask me anything"
-                    />
-                    <button
-                      type="submit"
-                      className="absolute bottom-2 right-2 bg-black rounded-full p-2 flex items-center justify-center hover:bg-gray-700 transition cursor-pointer disabled:bg-gray-300 disabled:cursor-default"
-                      aria-label="Send"
-                      disabled={!question.trim()}
-                    >
-                      <ArrowUp className="w-5 h-5 text-white" />
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* ANSWER + CHAT HISTORY */}
-          {chatHistory.length > 0 && (
-            <div className="flex flex-col gap-6 overflow-y-auto pb-32" style={{ maxHeight: "calc(100vh - 12rem)" }}>
+        {/* CHAT HISTORY - This should be the scrollable area */}
+        {chatHistory.length > 0 && (
+          <div className="flex-1 overflow-y-auto px-4 pb-60">
+            <div className="flex flex-col gap-6 max-w-5xl mx-auto">
               {chatHistory.map((msg, idx) => (
                 <div key={idx} ref={idx === chatHistory.length - 1 ? lastMsgRef : null}>
                   {/* User query bubble */}
-                  <div className="flex justify-end">
-                    <div className="bg-pawlicy-lightgreen text-gray-900 rounded-3xl px-6 py-4 max-w-lg text-right shadow-md">
-                      <ReactMarkdown>{msg.question}</ReactMarkdown>
+                  <div className="flex justify-end my-8">
+                    <div className="bg-pawlicy-lightgreen text-gray-900 rounded-3xl px-6 py-4 max-w-lg shadow-md">
+                      <div className="text-left">
+                        <ReactMarkdown>{msg.question}</ReactMarkdown>
+                      </div>
                     </div>
                   </div>
                   {/* AI answer bubble */}
@@ -249,22 +302,61 @@ export default function Home() {
                       {msg.pending ? (
                         <span>
                           <BirdLoader /> Thinking...
-                          {/* Thinking... */}
                         </span>
                       ) : (
-                        <ReactMarkdown>{msg.answer}</ReactMarkdown>
+                        <div>
+                          <ReactMarkdown>{msg.answer}</ReactMarkdown>
+                          <div className="mt-4 pt-4 border-t text-sm text-gray-800 italic">
+                            Prepared by Pawlicy Pal. Please consult City Counsel before filing to confirm compliance with state pre‑emption rules and charter procedures.
+                          </div>
+                        </div>
                       )}
                     </div>
                   </div>
-                  {/* Context toggle for each message (optional) */}
+
                   {msg.context && (
-                    <button
-                      className="text-sm underline text-blue-500 hover:text-blue-800 pl-4 mb-2 cursor-pointer"
-                      onClick={() => setShowContext(showContext === idx ? null : idx)}
-                    >
-                      {showContext === idx ? "Hide context" : "Show context"}
-                    </button>
+                    <div className="flex items-center pl-4 gap-2 mb-2 mt-4">
+                      {/* Download icon (left) */}
+                      <button
+                        className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors rounded"
+                        title="Download"
+                      >
+                        <Download className="w-6 h-6" />
+                      </button>
+
+                      {/* Copy icon (second) */}
+                      <button
+                        className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors rounded"
+                        title={copiedIndex === idx ? "Copied!" : "Copy response"}
+                        onClick={() => handleCopyResponse(msg.answer, idx)}
+                      >
+                        <Copy className={`w-6 h-6 ${copiedIndex === idx ? 'text-green-600' : ''}`} />
+                      </button>
+
+                      {/* Pen icon (middle) */}
+                      <button
+                        className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors p-1 rounded"
+                        title="Edit"
+                      >
+                        <PencilLine className="w-6 h-6" />
+                      </button>
+
+                      {/* Add to policy tracker icon (right) */}
+                      <button
+                        className="hover:text-green-900 cursor-pointer transition-colors rounded"
+                        onClick={() => handleAddToPolicyTracker(msg, idx)}
+                        title={showContext === idx ? "Hide context" : "Add to policy tracker"}
+                      >
+                        <Image
+                          src="/add-policy-tracker.svg"
+                          alt="Toggle context"
+                          width={24}
+                          height={24}
+                        />
+                      </button>
+                    </div>
                   )}
+
                   {showContext === idx && msg.context && (
                     <div>
                       <strong className="block mb-1">Context:</strong>
@@ -291,21 +383,24 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
+        {/* PROMPT SUGGESTIONS (only when no chat history) */}
         {chatHistory.length === 0 && (
-          <>
+          <div className="flex-shrink-0 px-4">
             {/* INSTRUCTIONS */}
-            <div className="w-full flex justify-center pt-4 text-gray-500 font-semibold text-md">Don’t know where to start? Here are some examples of things you can ask me:</div>
+            <div className="w-full flex justify-center pt-12 pb-4 text-gray-500 font-semibold text-md">
+              Don't know where to start? Here are some examples of things you can ask me:
+            </div>
 
             {/* PROMPT SUGGESTIONS */}
-            <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 gap-4 max-w-4xl mx-auto mt-4 mb-32">
               {promptSuggestions.map((p) => (
                 <div
                   key={p.id}
                   className="border-[#D7E8CD] border-2 rounded-4xl p-3 text-gray-500 text-sm cursor-pointer hover:bg-gray-100 transition"
-                  onClick={() => onPromptClick(p.text.replace(/\*\*/g, ""))} // remove markdown ** for input text if needed
+                  onClick={() => onPromptClick(p.text.replace(/\*\*/g, ""))}
                 >
                   <div className="flex items-center justify-center gap-2">
                     {iconMap[p.icon]}
@@ -314,9 +409,67 @@ export default function Home() {
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
-      </main>
+      </div>
+
+      {/* FIXED INPUT FIELD (bottom, only if answer exists) */}
+      {chatHistory.length > 0 && (
+        <div
+          className="fixed bottom-8 bg-white border-[#D7E8CD] flex-shrink-0"
+          style={{ left: "15.5rem", width: "calc(100% - 15.5rem)" }}
+        >
+          <div className="max-w-5xl mx-auto px-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="w-full relative">
+                <input
+                  className="w-full min-w-0 px-4 py-4 pb-26 pr-12 text-md border border-[#D7E8CD] shadow-md rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  value={question}
+                  onChange={(e) => setQuestion(e.target.value)}
+                  placeholder="Ask me anything"
+                />
+                <button
+                  type="submit"
+                  className="absolute bottom-2 right-2 bg-black rounded-full p-2 flex items-center justify-center hover:bg-gray-700 transition cursor-pointer disabled:bg-gray-300 disabled:cursor-default"
+                  aria-label="Send"
+                  disabled={!question.trim()}
+                >
+                  <ArrowUp className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            </form>
+            <div className="text-sm text-center text-gray-500 font-medium pt-4">
+              Pawlicy Pal can make mistakes. Check important information.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Snackbar for copy notification */}
+      {showSnackbar && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out">
+          <div className="flex items-center gap-2">
+            <Copy className="w-4 h-4" />
+            <span className="text-sm font-medium">Copied to clipboard!</span>
+          </div>
+        </div>
+      )}
+
+      {/* Snackbar for policy tracker notification */}
+      {showPolicySnackbar && (
+        <div className="fixed bottom-24 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out">
+          <div className="flex items-center gap-2">
+            <Image
+              src="/add-policy-tracker.svg"
+              alt="Policy added"
+              width={16}
+              height={16}
+              className="filter invert"
+            />
+            <span className="text-sm font-medium">Added to Policy Tracker!</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
