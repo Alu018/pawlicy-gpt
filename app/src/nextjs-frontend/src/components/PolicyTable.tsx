@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Filter } from 'lucide-react';
 import { useChat } from './ClientLayout';
+import { useRouter } from 'next/navigation';
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -17,28 +18,27 @@ function getStatusColor(status: string) {
   }
 }
 
+// Updated function to return gray styling for all stages
 function getStageColor(stage: string) {
-  switch (stage) {
-    case "Draft":
-      return "bg-blue-100 text-blue-800";
-    case "In Review":
-      return "bg-purple-100 text-purple-800";
-    case "Reviewed":
-      return "bg-indigo-100 text-indigo-800";
-    case "Filed":
-      return "bg-cyan-100 text-cyan-800";
-    case "Implementing":
-      return "bg-green-100 text-green-800";
-    default:
-      return "bg-gray-100 text-gray-600";
-  }
+  return "bg-gray-100 text-gray-700";
 }
 
 export function PolicyTable() {
-  const { policies } = useChat();
+  const { policies, setPolicies, openDraftThread, chats } = useChat();
+  const router = useRouter();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [filteredData, setFilteredData] = useState(policies);
+
+  const stageOptions = [
+    "Draft",
+    "In Review",
+    "Reviewed",
+    "Sponsor Secured",
+    "Filed",
+    "Vote",
+    "Implementing"
+  ];
 
   // Update filtered data when policies change
   React.useEffect(() => {
@@ -56,12 +56,16 @@ export function PolicyTable() {
   const filterOptions = [
     "All",
     "Status: On Track",
-    "Status: At Risk", 
+    "Status: At Risk",
     "Status: Blocked",
     "Stage: Draft",
     "Stage: In Review",
+    "Stage: Reviewed",
     "Stage: Filed",
-    "Stage: Implementing"
+    "Stage: Implementing",
+    "Stage: Passed",
+    "Stage: Rejected",
+    "Stage: On Hold"
   ];
 
   const handleFilterSelect = (filter: string) => {
@@ -69,7 +73,24 @@ export function PolicyTable() {
     setIsFilterOpen(false);
   };
 
-  // Rest of the component remains the same...
+  const handleStageChange = (policyId: string, newStage: string) => {
+    // Update the policy in the global state
+    setPolicies(prevPolicies =>
+      prevPolicies.map(policy =>
+        policy.id === policyId
+          ? { ...policy, stage: newStage }
+          : policy
+      )
+    );
+  };
+
+  const handleOpenDraftThread = (policy: any) => {
+    if (policy.sourceChatId && chats.find(chat => chat.id === policy.sourceChatId)) {
+      openDraftThread(policy);
+      router.push('/'); // Navigate to chat page
+    }
+  };
+
   return (
     <div className="space-y-4 mt-6">
       {/* Filter Section */}
@@ -91,9 +112,8 @@ export function PolicyTable() {
                   <button
                     key={option}
                     onClick={() => handleFilterSelect(option)}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${
-                      selectedFilter === option ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                    }`}
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedFilter === option ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                      }`}
                   >
                     {option}
                   </button>
@@ -104,7 +124,7 @@ export function PolicyTable() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* TABLE */}
       <div className="bg-white rounded-lg shadow overflow-hidden border border-gray-200">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -146,29 +166,55 @@ export function PolicyTable() {
                     <div>
                       <div className="text-sm font-medium text-gray-900">{policy.name}</div>
                       <div className="text-sm text-gray-500">({policy.id})</div>
+                      {/* Open Draft Thread Link */}
+                      {policy.sourceChatId && chats.find(chat => chat.id === policy.sourceChatId) && (
+                        <button
+                          onClick={() => handleOpenDraftThread(policy)}
+                          className="text-xs text-blue-600 hover:text-blue-800 hover:underline cursor-pointer mt-1"
+                        >
+                          Open Draft Thread
+                        </button>
+                      )}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{policy.jurisdiction}</div>
                   </td>
-                  
+
+                  {/* Editable Stage Column */}
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStageColor(policy.stage)}`}>
-                      {policy.stage}
-                    </span>
+                    <div className="relative">
+                      <select
+                        value={policy.stage}
+                        onChange={(e) => handleStageChange(policy.id, e.target.value)}
+                        className={`inline-flex px-2 py-1 pr-6 text-xs font-semibold rounded-sm border-0 outline-none cursor-pointer appearance-none ${getStageColor(policy.stage)}`}
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                          backgroundPosition: 'right 0.25rem center',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundSize: '1rem 1rem'
+                        }}
+                      >
+                        {stageOptions.map((stage) => (
+                          <option key={stage} value={stage}>
+                            {stage}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </td>
-                  
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(policy.status)}`}>
                       {policy.status}
                     </span>
                   </td>
-                  
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{policy.dueDate}</div>
                   </td>
-                  
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex space-x-1">
                       {policy.assignees.map((assignee, idx) => (
@@ -181,7 +227,7 @@ export function PolicyTable() {
                       ))}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-1">
                       {policy.requiredDocs.map((doc, idx) => (
@@ -194,13 +240,13 @@ export function PolicyTable() {
                       ))}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
                       {policy.attachments > 0 ? policy.attachments : '-'}
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-4">
                     <div className="text-sm text-gray-900 max-w-xs truncate" title={policy.notes}>
                       {policy.notes || '-'}

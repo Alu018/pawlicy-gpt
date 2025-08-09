@@ -19,6 +19,8 @@ type Policy = {
   requiredDocs: string[];
   attachments: number;
   notes: string;
+  sourceChatId?: string; // Track which chat this policy came from
+  sourceMessageIndex?: number; // Track which message in the chat
 };
 
 type ChatContextType = {
@@ -31,6 +33,7 @@ type ChatContextType = {
   policies: Policy[];
   setPolicies: React.Dispatch<React.SetStateAction<Policy[]>>;
   addPolicy: (policy: Omit<Policy, 'id'>) => void;
+  openDraftThread: (policy: Policy) => void; // New function to navigate to source chat
 };
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -61,6 +64,18 @@ function ChatProvider({ children }: { children: React.ReactNode }) {
     setPolicies(prev => [...prev, { ...newPolicy, id }]);
   };
 
+  const openDraftThread = (policy: Policy) => {
+    if (policy.sourceChatId && chats.find(chat => chat.id === policy.sourceChatId)) {
+      // Chat exists, navigate to it
+      setActiveChatId(policy.sourceChatId);
+      const sourceChat = chats.find(chat => chat.id === policy.sourceChatId);
+      if (sourceChat) {
+        setChatHistory(sourceChat.history);
+      }
+      // Router navigation will be handled in the layout component
+    }
+  };
+
   return (
     <ChatContext.Provider value={{ 
       chats, 
@@ -71,7 +86,8 @@ function ChatProvider({ children }: { children: React.ReactNode }) {
       setChatHistory,
       policies,
       setPolicies,
-      addPolicy
+      addPolicy,
+      openDraftThread
     }}>
       {children}
     </ChatContext.Provider>

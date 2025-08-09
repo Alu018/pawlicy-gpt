@@ -70,7 +70,7 @@ export default function Sidebar({
           onClick={handleNewPolicy}
           className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
-          <SquarePen className="w-5 h-5" /> New Policy
+          <SquarePen className="w-5 h-5" /> New Draft
         </button>
 
         <button
@@ -83,7 +83,7 @@ export default function Sidebar({
 
       {/* Chats Section */}
       <div className="mt-8">
-        <div className="text-xs font-bold text-gray-500 mb-2 pl-2">Chats</div>
+        <div className="text-xs font-bold text-gray-500 mb-2 pl-2">Drafts</div>
         <div className="flex flex-col gap-1">
           {chats.map((chat: Chat) => (
             <div
