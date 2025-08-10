@@ -1,25 +1,24 @@
 'use client'
 
 import { useState } from 'react';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Eye, EyeOff, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { url } from 'inspector';
 
-export default function AuthPage() {
-  const [isSignIn, setIsSignIn] = useState(true);
+export default function CreateAccountPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
+    fullName: '',
+    organizationName: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    firstName: '',
-    lastName: '',
-    organization: ''
+    confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  
+
   const router = useRouter();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,127 +35,133 @@ export default function AuthPage() {
     setError('');
 
     // Basic validation
-    if (!formData.email || !formData.password) {
-      setError('Email and password are required');
+    if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('Please fill in all required fields');
       setIsLoading(false);
       return;
     }
 
-    if (!isSignIn) {
-      if (formData.password !== formData.confirmPassword) {
-        setError('Passwords do not match');
-        setIsLoading(false);
-        return;
-      }
-      if (!formData.firstName || !formData.lastName) {
-        setError('First name and last name are required');
-        setIsLoading(false);
-        return;
-      }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      setIsLoading(false);
+      return;
     }
 
     try {
-      // TODO: Replace with actual authentication logic
+      // TODO: Replace with actual account creation logic
       await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-      
-      if (isSignIn) {
-        console.log('Signing in:', { email: formData.email, password: formData.password });
-      } else {
-        console.log('Creating account:', formData);
-      }
-      
-      // Redirect to main app after successful auth
+
+      console.log('Creating account:', formData);
+
+      // Redirect to main app after successful account creation
       router.push('/');
     } catch (err) {
-      setError('Authentication failed. Please try again.');
+      setError('Account creation failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSignInClick = () => {
+    // TODO: Navigate to sign in page or toggle to sign in mode
+    alert('Sign in functionality will be implemented');
+  };
+
+  const handleClose = () => {
+    router.push('/');
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link href="/" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors">
-              <ArrowLeft className="w-5 h-5" />
-              <span className="text-sm font-medium">Back to Home</span>
-            </Link>
-            <div className="flex items-center gap-3">
-              <Image 
-                src="/logo.png" 
-                alt="Pawlicy GPT" 
-                width={32} 
-                height={32}
-                className="rounded"
-              />
-              <span className="text-xl font-bold text-pawlicy-green">PawlicyGPT</span>
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background with PNG */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: "url('/bg-account.svg')",
+          backgroundSize: '100%',
+          backgroundColor: '#f8faf6'
+        }}
+      />
+
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-opacity-20" />
+
+      {/* Modal Container */}
+      <div className="relative min-h-screen flex items-center justify-center p-4 py-12">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full h-full overflow-y-auto">
+          {/* Modal Header */}
+          <div className="relative px-8 pt-8 pb-6">
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Logo and Title */}
+            <div className="text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Image
+                  src="/logo2.png"
+                  alt="Pawlicy Pal logo"
+                  width={40}
+                  height={40}
+                />
+                <span className="text-xl">
+                  <span className="font-semibold">Pawlicy</span> Pal
+                </span>
+              </div>
             </div>
           </div>
-        </div>
-      </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          {/* Title */}
-          <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900">
-              {isSignIn ? 'Sign in to your account' : 'Create your account'}
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              {isSignIn 
-                ? 'Welcome back! Please sign in to continue.'
-                : 'Join us to start tracking and managing your policy initiatives.'
-              }
-            </p>
-          </div>
-
-          {/* Form */}
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4">
-              {/* First Name & Last Name (Create Account Only) */}
-              {!isSignIn && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                      First Name
-                    </label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      required={!isSignIn}
-                      value={formData.firstName}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pawlicy-green focus:border-pawlicy-green"
-                      placeholder="John"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                      Last Name
-                    </label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      required={!isSignIn}
-                      value={formData.lastName}
-                      onChange={handleInputChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pawlicy-green focus:border-pawlicy-green"
-                      placeholder="Doe"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Email */}
+          {/* Modal Body */}
+          <div className="px-8 pb-8">
+            {/* Form */}
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              {/* Full Name */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email Address
+                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name *
+                </label>
+                <input
+                  id="fullName"
+                  name="fullName"
+                  type="text"
+                  required
+                  value={formData.fullName}
+                  onChange={handleInputChange}
+                  className="block w-full px-3 py-2 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
+                  placeholder="Name"
+                />
+              </div>
+
+              {/* Organization Name */}
+              <div>
+                <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Organization Name
+                </label>
+                <input
+                  id="organizationName"
+                  name="organizationName"
+                  type="text"
+                  required
+                  value={formData.organizationName}
+                  onChange={handleInputChange}
+                  className="block w-full px-3 py-2 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
+                  placeholder="(e.g. The Humane League)"
+                />
+              </div>
+
+              {/* Email Address */}
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address *
                 </label>
                 <input
                   id="email"
@@ -165,35 +170,17 @@ export default function AuthPage() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pawlicy-green focus:border-pawlicy-green"
-                  placeholder="john@example.com"
+                  className="block w-full px-3 py-2 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
+                  placeholder="name@example.com"
                 />
               </div>
 
-              {/* Organization (Create Account Only) */}
-              {!isSignIn && (
-                <div>
-                  <label htmlFor="organization" className="block text-sm font-medium text-gray-700">
-                    Organization <span className="text-gray-400">(Optional)</span>
-                  </label>
-                  <input
-                    id="organization"
-                    name="organization"
-                    type="text"
-                    value={formData.organization}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pawlicy-green focus:border-pawlicy-green"
-                    placeholder="Animal Rights Organization"
-                  />
-                </div>
-              )}
-
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                  Password
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                  Password *
                 </label>
-                <div className="mt-1 relative">
+                <div className="relative">
                   <input
                     id="password"
                     name="password"
@@ -201,7 +188,7 @@ export default function AuthPage() {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="block w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pawlicy-green focus:border-pawlicy-green"
+                    className="block w-full px-3 py-2 pr-10 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
                     placeholder="••••••••"
                   />
                   <button
@@ -210,116 +197,92 @@ export default function AuthPage() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-5 w-5 text-gray-400" />
+                      <EyeOff className="h-4 w-4 text-gray-400" />
                     ) : (
-                      <Eye className="h-5 w-5 text-gray-400" />
+                      <Eye className="h-4 w-4 text-gray-400" />
+                    )}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+              </div>
+
+              {/* Re-enter Password */}
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                  Re-enter Password *
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="block w-full px-3 py-2 pr-10 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4 text-gray-400" />
+                    ) : (
+                      <Eye className="h-4 w-4 text-gray-400" />
                     )}
                   </button>
                 </div>
               </div>
 
-              {/* Confirm Password (Create Account Only) */}
-              {!isSignIn && (
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                    Confirm Password
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showPassword ? "text" : "password"}
-                    required={!isSignIn}
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pawlicy-green focus:border-pawlicy-green"
-                    placeholder="••••••••"
-                  />
+              {/* Error Message */}
+              {error && (
+                <div className="text-red-600 text-sm text-center bg-red-50 p-3 rounded-lg border border-red-200">
+                  {error}
                 </div>
               )}
-            </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="text-red-600 text-sm text-center bg-red-50 p-2 rounded-md">
-                {error}
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-pawlicy-green hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pawlicy-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    {isSignIn ? 'Signing in...' : 'Creating account...'}
-                  </div>
-                ) : (
-                  isSignIn ? 'Sign in' : 'Create account'
-                )}
-              </button>
-            </div>
-
-            {/* Toggle between Sign In / Create Account */}
-            <div className="text-center">
-              <p className="text-sm text-gray-600">
-                {isSignIn ? "Don't have an account? " : "Already have an account? "}
+              {/* Create Account Button */}
+              <div className="pt-2">
                 <button
-                  type="button"
-                  onClick={() => {
-                    setIsSignIn(!isSignIn);
-                    setError('');
-                    setFormData({
-                      email: '',
-                      password: '',
-                      confirmPassword: '',
-                      firstName: '',
-                      lastName: '',
-                      organization: ''
-                    });
-                  }}
-                  className="font-medium text-pawlicy-green hover:text-green-700 transition-colors"
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-pawlicy-green hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pawlicy-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm cursor-pointer"
                 >
-                  {isSignIn ? 'Create one here' : 'Sign in here'}
-                </button>
-              </p>
-            </div>
-
-            {/* Forgot Password (Sign In Only) */}
-            {isSignIn && (
-              <div className="text-center">
-                <button
-                  type="button"
-                  className="text-sm text-gray-600 hover:text-gray-900 transition-colors"
-                  onClick={() => {
-                    // TODO: Implement forgot password
-                    alert('Forgot password functionality will be implemented');
-                  }}
-                >
-                  Forgot your password?
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Creating account...
+                    </div>
+                  ) : (
+                    'Create Account'
+                  )}
                 </button>
               </div>
-            )}
-          </form>
-        </div>
-      </div>
 
-      {/* Footer */}
-      <footer className="bg-white border-t">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="text-center text-sm text-gray-500">
-            <p>&copy; 2025 PawlicyGPT. All rights reserved.</p>
-            <div className="mt-2 space-x-4">
-              <a href="#" className="hover:text-gray-700 transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-gray-700 transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-gray-700 transition-colors">Support</a>
-            </div>
+              {/* Already have an account */}
+              <div className="text-center pt-4 border-t border-gray-100">
+                <p className="text-sm text-gray-500 font-semibold">
+                  ALREADY HAVE AN ACCOUNT?{' '}
+                </p>
+              </div>
+
+              {/* SIGN IN Button */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleSignInClick}
+                  disabled={isLoading}
+                  className="w-full flex justify-center py-3 px-4 border-2 border-pawlicy-green text-sm font-medium rounded-lg text-pawlicy-green bg-white hover:bg-pawlicy-green hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pawlicy-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm cursor-pointer"
+                >
+                  Sign In
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </footer>
+      </div>
     </div>
   );
 }
