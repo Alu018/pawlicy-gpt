@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import ClientLayout from "../components/ClientLayout";
+import ConditionalLayout from "../components/ConditionalLayout";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -25,9 +25,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ClientLayout>
+        <ConditionalLayout>
           {children}
-        </ClientLayout>
+        </ConditionalLayout>
       </body>
     </html>
   );

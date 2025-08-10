@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useChat } from "./ClientLayout";
 import { useState, useRef, useEffect } from "react";
-import { User, Settings, LogOut } from "lucide-react";
+import { User, Settings, LogOut, Bug } from "lucide-react";
 
 export default function Header() {
     const router = useRouter();
@@ -48,6 +48,10 @@ export default function Header() {
         console.log("Logout user");
     };
 
+    const handleDebugAuthClick = () => {
+        router.push('/auth');
+    };
+
     // Close dropdown when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -78,57 +82,70 @@ export default function Header() {
                     </span>
                 </Link>
 
-                {/* ACCOUNT */}
-                <div className="relative" ref={dropdownRef}>
-                    <div 
-                        className="flex items-center gap-3 flex-row-reverse cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
-                        onClick={handleAccountClick}
+                {/* Right side container */}
+                <div className="flex items-center gap-3">
+                    {/* Debug Auth Button */}
+                    <button
+                        onClick={handleDebugAuthClick}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors"
+                        title="Debug: Go to Auth Page"
                     >
-                        <Image
-                            src="/profile-pic.svg"
-                            alt="Profile"
-                            width={40}
-                            height={40}
-                            className="rounded-full object-cover"
-                        />
-                        <div className="flex flex-col leading-tight text-right">
-                            <span className="text-sm font-medium text-gray-800">Patricia Peters</span>
-                            <span className="text-xs text-gray-500">Animal Welfare League</span>
-                        </div>
-                    </div>
+                        <Bug className="w-3 h-3" />
+                        <span>Auth</span>
+                    </button>
 
-                    {/* Dropdown Menu */}
-                    {isDropdownOpen && (
-                        <div className="absolute right-0 top-full mt-2 w-58 bg-white border border-gray-200 rounded-3xl shadow-lg z-50">
-                            <div className="py-2">
-                                {/* Email */}
-                                <div className="px-4 py-3 border-b border-gray-100">
-                                    <div className="flex items-center gap-3">
-                                        <User className="w-4 h-4 text-gray-500" />
-                                        <span className="text-sm text-gray-700">patricia.peters@awl.org</span>
-                                    </div>
-                                </div>
-
-                                {/* Settings */}
-                                <button
-                                    onClick={handleSettingsClick}
-                                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left"
-                                >
-                                    <Settings className="w-4 h-4 text-gray-500" />
-                                    <span className="text-sm text-gray-700">Settings</span>
-                                </button>
-
-                                {/* Log Out */}
-                                <button
-                                    onClick={handleLogoutClick}
-                                    className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left border-t border-gray-100"
-                                >
-                                    <LogOut className="w-4 h-4 text-gray-500" />
-                                    <span className="text-sm text-gray-700">Log out</span>
-                                </button>
+                    {/* ACCOUNT */}
+                    <div className="relative" ref={dropdownRef}>
+                        <div 
+                            className="flex items-center gap-3 flex-row-reverse cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                            onClick={handleAccountClick}
+                        >
+                            <Image
+                                src="/profile-pic.svg"
+                                alt="Profile"
+                                width={40}
+                                height={40}
+                                className="rounded-full object-cover"
+                            />
+                            <div className="flex flex-col leading-tight text-right">
+                                <span className="text-sm font-medium text-gray-800">Patricia Peters</span>
+                                <span className="text-xs text-gray-500">Animal Welfare League</span>
                             </div>
                         </div>
-                    )}
+
+                        {/* Dropdown Menu */}
+                        {isDropdownOpen && (
+                            <div className="absolute right-0 top-full mt-2 w-58 bg-white border border-gray-200 rounded-3xl shadow-lg z-50">
+                                <div className="py-2">
+                                    {/* Email */}
+                                    <div className="px-4 py-3 border-b border-gray-100">
+                                        <div className="flex items-center gap-3">
+                                            <User className="w-4 h-4 text-gray-500" />
+                                            <span className="text-sm text-gray-700">patricia.peters@awl.org</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Settings */}
+                                    <button
+                                        onClick={handleSettingsClick}
+                                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left"
+                                    >
+                                        <Settings className="w-4 h-4 text-gray-500" />
+                                        <span className="text-sm text-gray-700">Settings</span>
+                                    </button>
+
+                                    {/* Log Out */}
+                                    <button
+                                        onClick={handleLogoutClick}
+                                        className="w-full px-4 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors text-left border-t border-gray-100"
+                                    >
+                                        <LogOut className="w-4 h-4 text-gray-500" />
+                                        <span className="text-sm text-gray-700">Log out</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </header>
