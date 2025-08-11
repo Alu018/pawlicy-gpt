@@ -68,16 +68,16 @@ export default function Sidebar({
       <nav className="flex flex-col gap-1">
         <button
           onClick={handleNewPolicy}
-          className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
+          className="flex items-center gap-2 text-gray-700 font-medium rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
-          <SquarePen className="w-5 h-5" /> New Draft
+          <SquarePen className="w-5 h-5" /> New draft
         </button>
 
         <button
           onClick={handlePolicyTracker}
-          className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
+          className="flex items-center gap-2 text-gray-700 font-medium rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
-          <Route className="w-5 h-5" /> Policy Tracker
+          <Route className="w-5 h-5" /> Policy tracker
         </button>
       </nav>
 
