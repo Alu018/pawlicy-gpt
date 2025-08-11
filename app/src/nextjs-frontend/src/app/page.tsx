@@ -55,11 +55,94 @@ export default function Home() {
   };
 
   const extractPolicyInfo = (question: string, answer: string) => {
-    // Extract policy name from question or answer
-    let policyName = question.length > 50 ? question.substring(0, 47) + "..." : question;
+    // Generate a meaningful policy name from question and answer content
+    const generatePolicyName = (question: string, answer: string) => {
+      const combinedText = question + " " + answer;
+
+      // Policy type keywords
+      const policyTypes = {
+        'ban': ['ban', 'prohibit', 'forbid', 'outlaw'],
+        'regulation': ['regulate', 'control', 'oversight', 'compliance'],
+        'ordinance': ['ordinance', 'municipal', 'local law'],
+        'licensing': ['license', 'permit', 'registration', 'certification'],
+        'protection': ['protect', 'welfare', 'safety', 'rights'],
+        'disclosure': ['disclosure', 'transparency', 'reporting', 'labeling']
+      };
+
+      // Animal/subject keywords
+      const subjects = [
+        'animal', 'dog', 'cat', 'horse', 'circus', 'wildlife', 'pet',
+        'fur', 'leather', 'foie gras', 'rodeo', 'carriage', 'tethering',
+        'breeding', 'puppy mill', 'backyard', 'enclosure', 'cage',
+        'plastic', 'straw', 'bag', 'pollution', 'environment'
+      ];
+
+      // Extract jurisdiction
+      const jurisdictionRegex = /(New York City|Chicago|Los Angeles|Austin|Boston|Seattle|Portland|San Francisco|SF|Miami|Denver|Phoenix|Philadelphia|Detroit|Baltimore|Atlanta|Dallas|Houston|San Antonio)/gi;
+      const jurisdictionMatch = combinedText.match(jurisdictionRegex);
+      const jurisdiction = jurisdictionMatch ? jurisdictionMatch[0] : '';
+
+      // Find policy type
+      let policyType = '';
+      for (const [type, keywords] of Object.entries(policyTypes)) {
+        if (keywords.some(keyword => combinedText.toLowerCase().includes(keyword))) {
+          policyType = type;
+          break;
+        }
+      }
+
+      // Find main subject
+      let mainSubject = '';
+      for (const subject of subjects) {
+        if (combinedText.toLowerCase().includes(subject)) {
+          mainSubject = subject;
+          break;
+        }
+      }
+
+      // Generate name based on extracted information
+      if (mainSubject && policyType) {
+        const typeWord = policyType === 'ban' ? 'Ban' :
+          policyType === 'regulation' ? 'Regulation' :
+            policyType === 'ordinance' ? 'Ordinance' :
+              policyType === 'licensing' ? 'Licensing' :
+                policyType === 'protection' ? 'Protection Act' :
+                  policyType === 'disclosure' ? 'Disclosure Rule' : 'Policy';
+
+        if (jurisdiction) {
+          return `${jurisdiction} ${mainSubject.charAt(0).toUpperCase() + mainSubject.slice(1)} ${typeWord}`;
+        } else {
+          return `${mainSubject.charAt(0).toUpperCase() + mainSubject.slice(1)} ${typeWord}`;
+        }
+      } else if (mainSubject) {
+        return jurisdiction ?
+          `${jurisdiction} ${mainSubject.charAt(0).toUpperCase() + mainSubject.slice(1)} Policy` :
+          `${mainSubject.charAt(0).toUpperCase() + mainSubject.slice(1)} Policy`;
+      } else if (policyType) {
+        const typeWord = policyType.charAt(0).toUpperCase() + policyType.slice(1);
+        return jurisdiction ? `${jurisdiction} ${typeWord}` : `New ${typeWord}`;
+      } else {
+        // Fallback: extract key nouns from question
+        const words = question.toLowerCase().split(/\s+/);
+        const keyWords = words.filter(word =>
+          word.length > 3 &&
+          !['that', 'this', 'with', 'from', 'they', 'have', 'been', 'will', 'can', 'could', 'would', 'should'].includes(word)
+        );
+
+        if (keyWords.length > 0) {
+          const firstKeyWord = keyWords[0].charAt(0).toUpperCase() + keyWords[0].slice(1);
+          return jurisdiction ? `${jurisdiction} ${firstKeyWord} Initiative` : `${firstKeyWord} Initiative`;
+        }
+      }
+
+      // Final fallback
+      return jurisdiction ? `${jurisdiction} Policy Initiative` : 'New Policy Initiative';
+    };
+
+    const policyName = generatePolicyName(question, answer);
 
     // Try to extract jurisdiction from the text
-    const jurisdictionRegex = /(New York|NYC|Chicago|Los Angeles|LA|Austin|Boston|Seattle|Portland|San Francisco|SF|Miami|Denver|Phoenix|Philadelphia|Detroit|Baltimore|Atlanta|Dallas|Houston|San Antonio)/gi;
+    const jurisdictionRegex = /(New York|NYC|Chicago|Los Angeles|Austin|Boston|Seattle|Portland|San Francisco|SF|Miami|Denver|Phoenix|Philadelphia|Detroit|Baltimore|Atlanta|Dallas|Houston|San Antonio)/gi;
     const jurisdictionMatch = (question + " " + answer).match(jurisdictionRegex);
     const jurisdiction = jurisdictionMatch ? jurisdictionMatch[0] : "TBD";
 
@@ -88,7 +171,15 @@ export default function Home() {
 
   const handleAddToPolicyTracker = (msg: any, index: number) => {
     const policyInfo = extractPolicyInfo(msg.question, msg.answer);
-    addPolicy(policyInfo);
+
+    // Add source chat information
+    const policyWithSource = {
+      ...policyInfo,
+      sourceChatId: activeChatId || undefined, // Convert null to undefined
+      sourceMessageIndex: index
+    };
+
+    addPolicy(policyWithSource);
 
     setAddedToPolicyTracker(index);
     setShowPolicySnackbar(true);

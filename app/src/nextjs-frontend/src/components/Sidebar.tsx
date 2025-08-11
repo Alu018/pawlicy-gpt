@@ -70,7 +70,7 @@ export default function Sidebar({
           onClick={handleNewPolicy}
           className="flex items-center gap-2 text-gray-700 rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
-          <SquarePen className="w-5 h-5" /> New Policy
+          <SquarePen className="w-5 h-5" /> New Draft
         </button>
 
         <button
@@ -81,35 +81,41 @@ export default function Sidebar({
         </button>
       </nav>
 
-      {/* Chats Section */}
+      {/* Drafts Section */}
       <div className="mt-8">
-        <div className="text-xs font-bold text-gray-500 mb-2 pl-2">Chats</div>
+        <div className="text-sm font-bold text-gray-500 mb-2 pl-2">Drafts</div>
         <div className="flex flex-col gap-1">
-          {chats.map((chat: Chat) => (
-            <div
-              key={chat.id}
-              className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm transition cursor-pointer group ${activeChatId === chat.id
-                ? "bg-pawlicy-lightgreen text-pawlicy-green font-semibold"
-                : "text-gray-700 hover:bg-pawlicy-lightgreen"
-                }`}
-              onClick={() => onSelectChat(chat.id)}
-              title={chat.title || "Untitled Chat"} // Show full title on hover
-            >
-              <MessageCircle className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate flex-1">
-                {truncateTitle(chat.title || "Untitled Chat")}
-              </span>
-              
-              {/* Delete button - only visible on hover */}
-              <button
-                onClick={(e) => handleDeleteChat(e, chat.id)}
-                className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all duration-200 cursor-pointer"
-                title="Delete chat"
-              >
-                <Trash2 className="w-4 h-4 text-pawlicy-green hover:text-red-400" />
-              </button>
+          {chats.length === 0 ? (
+            <div className="px-2 py-2 text-sm text-gray-500 text-left">
+              Your policy drafts will appear here.
             </div>
-          ))}
+          ) : (
+            chats.map((chat: Chat) => (
+              <div
+                key={chat.id}
+                className={`flex items-center gap-2 px-3 py-2 rounded-2xl text-sm transition cursor-pointer group ${activeChatId === chat.id
+                  ? "bg-pawlicy-lightgreen text-pawlicy-green font-semibold"
+                  : "text-gray-700 hover:bg-pawlicy-lightgreen"
+                  }`}
+                onClick={() => onSelectChat(chat.id)}
+                title={chat.title || "Untitled Chat"} // Show full title on hover
+              >
+                <MessageCircle className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate flex-1">
+                  {truncateTitle(chat.title || "Untitled Chat")}
+                </span>
+
+                {/* Delete button - only visible on hover */}
+                <button
+                  onClick={(e) => handleDeleteChat(e, chat.id)}
+                  className="opacity-0 group-hover:opacity-100 p-1 rounded transition-all duration-200 cursor-pointer"
+                  title="Delete chat"
+                >
+                  <Trash2 className="w-4 h-4 text-pawlicy-green hover:text-red-400" />
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </aside>
