@@ -12,6 +12,7 @@ type Policy = {
   id: string;
   name: string;
   jurisdiction: string;
+  topic: string; // ← Add this line
   stage: string;
   status: string;
   dueDate: string;
@@ -19,8 +20,8 @@ type Policy = {
   requiredDocs: string[];
   attachments: number;
   notes: string;
-  sourceChatId?: string; // Track which chat this policy came from
-  sourceMessageIndex?: number; // Track which message in the chat
+  sourceChatId?: string;
+  sourceMessageIndex?: number;
 };
 
 type ChatContextType = {
@@ -43,25 +44,14 @@ function ChatProvider({ children }: { children: React.ReactNode }) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [chatHistory, setChatHistory] = useState<{ question: string; answer: string; context?: any; pending?: boolean }[]>([]);
-  const [policies, setPolicies] = useState<Policy[]>([
-    // Default policies (existing data)
-    {
-      id: "FG-NYC-25",
-      name: "NYC Foie Gras Procurement Ban",
-      jurisdiction: "New York City",
-      stage: "In Review",
-      status: "At Risk",
-      dueDate: "Aug 20, 2025",
-      assignees: ["Maria", "Alex"],
-      requiredDocs: ["Fiscal Note", "Sponsor Memo"],
-      attachments: 2,
-      notes: "Legal concerns about state preemption need to be addressed."
-    }
-  ]);
+  const [policies, setPolicies] = useState<Policy[]>([]);
 
   const addPolicy = (newPolicy: Omit<Policy, 'id'>) => {
     const id = `POL-${Date.now()}`;
-    setPolicies(prev => [...prev, { ...newPolicy, id }]);
+    setPolicies(prev => [
+      ...prev,
+      { ...newPolicy, id, topic: newPolicy.topic || "animal welfare" }
+    ]);
   };
 
   const openDraftThread = (policy: Policy) => {
@@ -77,12 +67,12 @@ function ChatProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ChatContext.Provider value={{ 
-      chats, 
-      setChats, 
-      activeChatId, 
-      setActiveChatId, 
-      chatHistory, 
+    <ChatContext.Provider value={{
+      chats,
+      setChats,
+      activeChatId,
+      setActiveChatId,
+      chatHistory,
       setChatHistory,
       policies,
       setPolicies,
@@ -128,7 +118,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   const handleDeleteChat = (id: string) => {
     setChats(prevChats => prevChats.filter(chat => chat.id !== id));
-    
+
     if (activeChatId === id) {
       setActiveChatId(null);
       setChatHistory([]);

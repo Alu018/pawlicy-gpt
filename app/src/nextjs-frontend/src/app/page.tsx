@@ -146,6 +146,8 @@ export default function Home() {
     const jurisdictionMatch = (question + " " + answer).match(jurisdictionRegex);
     const jurisdiction = jurisdictionMatch ? jurisdictionMatch[0] : "TBD";
 
+    const topicName = "Animal Welfare";
+
     // Determine policy type and set appropriate defaults
     let stage = "Draft";
     let requiredDocs = ["Fiscal Note", "Sponsor Memo"];
@@ -159,6 +161,7 @@ export default function Home() {
     return {
       name: policyName,
       jurisdiction: jurisdiction,
+      topic: topicName,
       stage: stage,
       status: "On Track",
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString(), // 30 days from now
@@ -406,16 +409,8 @@ export default function Home() {
                   </div>
 
                   {msg.context && (
-                    <div className="flex items-center pl-4 gap-2 mb-2 mt-4">
-                      {/* Download icon (left) */}
-                      <button
-                        className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors rounded"
-                        title="Download"
-                      >
-                        <Download className="w-6 h-6" />
-                      </button>
-
-                      {/* Copy icon (second) */}
+                    <div className="flex items-center gap-2 mb-2 mt-4 pl-6 max-w-3xl w-full">
+                      {/* COPY */}
                       <button
                         className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors rounded"
                         title={copiedIndex === idx ? "Copied!" : "Copy response"}
@@ -424,7 +419,7 @@ export default function Home() {
                         <Copy className={`w-6 h-6 ${copiedIndex === idx ? 'text-green-600' : ''}`} />
                       </button>
 
-                      {/* Pen icon (middle) */}
+                      {/* EDIT */}
                       <button
                         className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors p-1 rounded"
                         title="Edit"
@@ -432,18 +427,28 @@ export default function Home() {
                         <PencilLine className="w-6 h-6" />
                       </button>
 
-                      {/* Add to policy tracker icon (right) */}
+                      {/* SOURCES */}
                       <button
-                        className="hover:text-green-900 cursor-pointer transition-colors rounded"
+                        className="text-[#66991D] hover:text-green-900 cursor-pointer transition-colors p-1 rounded"
+                        title="Edit"
+                      >
+                        sources
+                      </button>
+
+                      {/* ADD to policy tracker button */}
+                      <button
+                        className="flex items-center gap-2 bg-pawlicy-green hover:bg-pawlicy-green text-white px-3 py-2 rounded-lg transition-colors shadow ml-auto cursor-pointer"
                         onClick={() => handleAddToPolicyTracker(msg, idx)}
-                        title={showContext === idx ? "Hide context" : "Add to policy tracker"}
+                        title="Track this policy"
                       >
                         <Image
                           src="/add-policy-tracker.svg"
-                          alt="Toggle context"
-                          width={24}
-                          height={24}
+                          alt="Track this policy"
+                          width={20}
+                          height={20}
+                          className="invert brightness-0"
                         />
+                        <span className="font-semibold text-sm">Track this policy</span>
                       </button>
                     </div>
                   )}
