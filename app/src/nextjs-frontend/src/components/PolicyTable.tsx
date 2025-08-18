@@ -1,9 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { ChevronDown, Filter } from 'lucide-react';
 import { useChat } from './ClientLayout';
 import { useRouter } from 'next/navigation';
+import { Calendar } from "lucide-react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { createPortal } from 'react-dom';
+import { formatLongDate } from "../lib/utils";
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -28,6 +33,33 @@ export function PolicyTable() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [filteredData, setFilteredData] = useState(policies);
+
+  // calendar
+  const [calendarOpenIndex, setCalendarOpenIndex] = useState<number | null>(null);
+  const [calendarPosition, setCalendarPosition] = useState<{ top: number; left: number } | null>(null);
+  const calendarIconRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const handleCalendarIconClick = (index: number) => {
+    setCalendarOpenIndex(calendarOpenIndex === index ? null : index);
+    if (calendarIconRefs.current[index]) {
+      const rect = calendarIconRefs.current[index]!.getBoundingClientRect();
+      setCalendarPosition({
+        top: rect.bottom + window.scrollY + 4,
+        left: rect.left + window.scrollX,
+      });
+    }
+  };
+
+  const handleDueDateChange = (policyId: string, date: Date) => {
+    setPolicies(prevPolicies =>
+      prevPolicies.map(policy =>
+        policy.id === policyId
+          ? { ...policy, dueDate: date.toLocaleDateString() }
+          : policy
+      )
+    );
+    setCalendarOpenIndex(null);
+  };
 
   const stageOptions = [
     "Draft",
@@ -95,7 +127,7 @@ export function PolicyTable() {
         <div className="relative">
           <button
             onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors cursor-pointer"
           >
             <Filter className="w-4 h-4 text-gray-600" />
             <span className="text-sm text-gray-700">Filter by: {selectedFilter}</span>
@@ -103,13 +135,13 @@ export function PolicyTable() {
           </button>
 
           {isFilterOpen && (
-            <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10 cursor-pointer">
               <div className="py-1">
                 {filterOptions.map((option) => (
                   <button
                     key={option}
                     onClick={() => handleFilterSelect(option)}
-                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedFilter === option ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                    className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors ${selectedFilter === option ? 'bg-blue-50 text-blue-700' : 'text-gray-700 cursor-pointer'
                       }`}
                   >
                     {option}
@@ -222,7 +254,17 @@ export function PolicyTable() {
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{policy.dueDate}</div>
+                      <div className="flex items-center text-sm text-gray-900 relative">
+                        {policy.dueDate ? formatLongDate(policy.dueDate) : '-'}
+                        <button
+                          type="button"
+                          className="ml-2 p-1 rounded hover:bg-gray-100 cursor-pointer"
+                          ref={el => { calendarIconRefs.current[index] = el; }}
+                          onClick={() => handleCalendarIconClick(index)}
+                        >
+                          <Calendar className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -266,6 +308,30 @@ export function PolicyTable() {
                 ))}
               </tbody>
             </table>
+
+            {/* Calendar popup rendered via portal */}
+            {calendarOpenIndex !== null && calendarPosition &&
+              createPortal(
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: calendarPosition.top,
+                    left: calendarPosition.left,
+                    zIndex: 9999,
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                  }}
+                >
+                  <DatePicker
+                    selected={new Date(filteredData[calendarOpenIndex].dueDate)}
+                    onChange={(date: Date | null) => {
+                      if (date) handleDueDateChange(filteredData[calendarOpenIndex].id, date);
+                    }}
+                    inline
+                  />
+                </div>,
+                document.body
+              )
+            }
           </div>
         </div>
       )}

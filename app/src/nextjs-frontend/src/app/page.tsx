@@ -168,7 +168,7 @@ export default function Home() {
       assignees: ["User"],
       requiredDocs: requiredDocs,
       attachments: 0,
-      notes: `Generated from chat on ${new Date().toLocaleDateString()}`
+      notes: `Drafted on ${new Date().toLocaleDateString()}`
     };
   };
 

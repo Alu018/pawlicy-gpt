@@ -1,5 +1,6 @@
 import { Route, SquarePen, Search, MessageCircle, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type Chat = {
   id: string;
@@ -75,9 +76,16 @@ export default function Sidebar({
 
         <button
           onClick={handlePolicyTracker}
-          className="flex items-center gap-2 text-gray-700 font-medium rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
+          className="group flex items-center gap-2 text-gray-700 font-medium rounded-2xl px-3 py-2 transition hover:bg-pawlicy-lightgreen focus:bg-pawlicy-green focus:text-white focus:outline-none cursor-pointer"
         >
-          <Route className="w-5 h-5" /> Policy tracker
+          <Image
+            src="/add-policy-tracker.svg"
+            alt="Track this policy"
+            width={24}
+            height={24}
+            className="brightness-0 group-focus:invert"
+          />
+          Policy tracker
         </button>
       </nav>
 
