@@ -4,9 +4,10 @@ import { useState } from 'react';
 import { Eye, EyeOff, X } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { url } from 'inspector';
+import { signIn } from 'next-auth/react';
 
 export default function CreateAccountPage() {
+  const [isSignIn, setIsSignIn] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,7 +27,7 @@ export default function CreateAccountPage() {
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError(''); // Clear error when user starts typing
+    setError('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,43 +35,95 @@ export default function CreateAccountPage() {
     setIsLoading(true);
     setError('');
 
-    // Basic validation
-    if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
-      setError('Please fill in all required fields');
-      setIsLoading(false);
-      return;
-    }
+    if (isSignIn) {
+      // Sign in logic
+      if (!formData.email || !formData.password) {
+        setError('Please fill in all fields');
+        setIsLoading(false);
+        return;
+      }
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false
+      });
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters long');
-      setIsLoading(false);
-      return;
-    }
+      if (result?.error) {
+        setError('Invalid email or password');
+        setIsLoading(false);
+        return;
+      }
 
-    try {
-      // TODO: Replace with actual account creation logic
-      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-
-      console.log('Creating account:', formData);
-
-      // Redirect to main app after successful account creation
       router.push('/');
-    } catch (err) {
-      setError('Account creation failed. Please try again.');
-    } finally {
-      setIsLoading(false);
+    } else {
+      // Sign up logic
+      if (!formData.fullName || !formData.email || !formData.password || !formData.confirmPassword) {
+        setError('Please fill in all required fields');
+        setIsLoading(false);
+        return;
+      }
+
+      if (formData.password !== formData.confirmPassword) {
+        setError('Passwords do not match');
+        setIsLoading(false);
+        return;
+      }
+
+      if (formData.password.length < 8) {
+        setError('Password must be at least 8 characters long');
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.error || 'Registration failed');
+          setIsLoading(false);
+          return;
+        }
+
+        // Auto sign in after registration
+        const signInResult = await signIn('credentials', {
+          email: formData.email,
+          password: formData.password,
+          redirect: false
+        });
+
+        if (signInResult?.error) {
+          setError('Registration successful, but sign-in failed. Please try signing in manually.');
+          setIsLoading(false);
+          return;
+        }
+
+        router.push('/auth/onboarding/region');
+      } catch (err) {
+        setError('Account creation failed. Please try again.');
+        setIsLoading(false);
+      }
     }
+
+    setIsLoading(false);
   };
 
   const handleSignInClick = () => {
-    // TODO: Navigate to sign in page or toggle to sign in mode
-    alert('Sign in functionality will be implemented');
+    setIsSignIn(!isSignIn);
+    setError('');
+    setFormData({
+      fullName: '',
+      organizationName: '',
+      email: '',
+      password: '',
+      confirmPassword: ''
+    });
   };
 
   const handleClose = () => {
@@ -79,7 +132,7 @@ export default function CreateAccountPage() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background with PNG */}
+      {/* Background */}
       <div
         className="absolute inset-0"
         style={{
@@ -122,41 +175,43 @@ export default function CreateAccountPage() {
 
           {/* Modal Body */}
           <div className="px-8 pb-8">
-            {/* Form */}
             <form className="space-y-4" onSubmit={handleSubmit}>
-              {/* Full Name */}
-              <div>
-                <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name *
-                </label>
-                <input
-                  id="fullName"
-                  name="fullName"
-                  type="text"
-                  required
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  className="block w-full px-3 py-2 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
-                  placeholder="Name"
-                />
-              </div>
+              {/* Full Name - only for sign up */}
+              {!isSignIn && (
+                <div>
+                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+                    Full Name *
+                  </label>
+                  <input
+                    id="fullName"
+                    name="fullName"
+                    type="text"
+                    required
+                    value={formData.fullName}
+                    onChange={handleInputChange}
+                    className="block w-full px-3 py-2 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
+                    placeholder="Name"
+                  />
+                </div>
+              )}
 
-              {/* Organization Name */}
-              <div>
-                <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Organization Name
-                </label>
-                <input
-                  id="organizationName"
-                  name="organizationName"
-                  type="text"
-                  required
-                  value={formData.organizationName}
-                  onChange={handleInputChange}
-                  className="block w-full px-3 py-2 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
-                  placeholder="(e.g. The Humane League)"
-                />
-              </div>
+              {/* Organization Name - only for sign up */}
+              {!isSignIn && (
+                <div>
+                  <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700 mb-1">
+                    Organization Name
+                  </label>
+                  <input
+                    id="organizationName"
+                    name="organizationName"
+                    type="text"
+                    value={formData.organizationName}
+                    onChange={handleInputChange}
+                    className="block w-full px-3 py-2 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
+                    placeholder="(e.g. The Humane League)"
+                  />
+                </div>
+              )}
 
               {/* Email Address */}
               <div>
@@ -203,38 +258,40 @@ export default function CreateAccountPage() {
                     )}
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+                {!isSignIn && <p className="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>}
               </div>
 
-              {/* Re-enter Password */}
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  Re-enter Password *
-                </label>
-                <div className="relative">
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type={showConfirmPassword ? "text" : "password"}
-                    required
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="block w-full px-3 py-2 pr-10 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
-                    )}
-                  </button>
+              {/* Re-enter Password - only for sign up */}
+              {!isSignIn && (
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                    Re-enter Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      required
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className="block w-full px-3 py-2 pr-10 border border-pawlicy-lightgreen rounded-4xl shadow-sm focus:outline-none focus:ring-2 focus:ring-pawlicy-green focus:border-pawlicy-green transition-colors"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Error Message */}
               {error && (
@@ -243,7 +300,7 @@ export default function CreateAccountPage() {
                 </div>
               )}
 
-              {/* Create Account Button */}
+              {/* Submit (create account) Button */}
               <div className="pt-2">
                 <button
                   type="submit"
@@ -253,22 +310,21 @@ export default function CreateAccountPage() {
                   {isLoading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Creating account...
+                      {isSignIn ? 'Signing in...' : 'Creating account...'}
                     </div>
                   ) : (
-                    'Create Account'
+                    isSignIn ? 'Sign In' : 'Create Account'
                   )}
                 </button>
               </div>
 
-              {/* Already have an account */}
+              {/* Toggle between sign in/sign up */}
               <div className="text-center pt-4 border-t border-gray-100">
                 <p className="text-sm text-gray-500 font-semibold">
-                  ALREADY HAVE AN ACCOUNT?{' '}
+                  {isSignIn ? "DON'T HAVE AN ACCOUNT?" : "ALREADY HAVE AN ACCOUNT?"}
                 </p>
               </div>
 
-              {/* SIGN IN Button */}
               <div className="pt-2">
                 <button
                   type="button"
@@ -276,7 +332,7 @@ export default function CreateAccountPage() {
                   disabled={isLoading}
                   className="w-full flex justify-center py-3 px-4 border-2 border-pawlicy-green text-sm font-medium rounded-lg text-pawlicy-green bg-white hover:bg-pawlicy-green hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pawlicy-green disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm cursor-pointer"
                 >
-                  Sign In
+                  {isSignIn ? 'Create Account' : 'Sign In'}
                 </button>
               </div>
             </form>
