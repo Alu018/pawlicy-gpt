@@ -1,4 +1,6 @@
-# pawlicy-gpt
+# PAWLICY PAL
+
+Live site: https://www.pawlicypal.ai/
 
 Pawlicy Pal 🐾
 
