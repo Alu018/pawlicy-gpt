@@ -13,3 +13,5 @@ Features
 - Frontend: Next.js, Tailwind CSS, deployed with Vercel
 
 - Backend: FastAPI, deployed with Railway
+
+- NextAuth.js for user authentication + Supabase for user database
