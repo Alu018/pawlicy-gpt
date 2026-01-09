@@ -53,12 +53,20 @@ model_name = 'multilingual-e5-large'
 
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 
+# create vector embeddings using the transformer model
 embeddings = PineconeEmbeddings(
     model=model_name,
     pinecone_api_key=os.environ.get('PINECONE_API_KEY')
 )
 
-# connect to an existing pinecone index
+# connect to an existing pinecone index, specificying the namespace.
+# the namespace is like a folder in the index
+# Index: policy-docs
+  # └── Namespace: horse_carriage
+  #      ├── Vector 1: [0.23, -0.15, ...] + metadata: {text: "...", source: "carriage_horse_heat_2019.pdf"}
+  #      ├── Vector 2: [...]
+  #      └── Vector 3: [...]
+
 docsearch = PineconeVectorStore(
     index_name=index_name,
     embedding=embeddings,
@@ -71,6 +79,7 @@ docsearch = PineconeVectorStore(
 retrieval_qa_chat_prompt = hub.pull("langchain-ai/retrieval-qa-chat")
 
 # Create retriever (you still need to define `docsearch`)
+# the retriever is an interface that finds/returns docs in response to the query
 retriever = docsearch.as_retriever()
 
 # Gemini setup
@@ -80,12 +89,15 @@ llm = ChatGoogleGenerativeAI(
     temperature=0.0
 )
 
-# Build chain
+# Build chain. combining the LLM, and the custom prompt we defined
 combine_docs_chain = create_stuff_documents_chain(
     llm, custom_prompt
 )
 
 # retriever = docsearch.as_retriever(search_kwargs={"score_threshold": 0.7})
+
+# combines the two operations. We retrieve relevant docs with retriever and send it off to the llm to generate the answer
+# we'll be calling retrieval_chain.invoke() in the API endpoint
 retrieval_chain = create_retrieval_chain(retriever, combine_docs_chain)
 
 # See how many vectors have been upserted
