@@ -53,7 +53,8 @@ model_name = 'multilingual-e5-large'
 
 pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 
-# create vector embeddings using the transformer model
+# create the embedding MODEL - the client that can call the embeddings API.
+# this will be used to create embeddings from the user query. Transformer model must be the same across user and ingestion conversions.
 embeddings = PineconeEmbeddings(
     model=model_name,
     pinecone_api_key=os.environ.get('PINECONE_API_KEY')
